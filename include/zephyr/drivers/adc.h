@@ -1267,14 +1267,14 @@ struct __attribute__((__packed__)) adc_data_generic_header {
  * @param ctx          Pointer to the RTIO context (with memory pool) that will receive the
  *                     streaming data.
  * @param userdata     Optional user data pointer passed through to CQEs.
- * @param[out] handle  Optional output pointer; if non-NULL, receives the submission queue entry
- *                     that can be used to cancel the stream.
+ * @param[out] handle  Optional output pointer; if non-NULL, receives the handle of the streaming
+ *                     submission that can be used to cancel the stream.
  *
  * @retval 0           Success.
  * @retval -ENOMEM     An SQE could not be acquired from the RTIO context.
  */
 static inline int adc_stream(struct rtio_iodev *iodev, struct rtio *ctx, void *userdata,
-				struct rtio_sqe **handle)
+				rtio_sqe_handle_t *handle)
 {
 	if (IS_ENABLED(CONFIG_USERSPACE)) {
 		struct rtio_sqe sqe;
@@ -1288,7 +1288,7 @@ static inline int adc_stream(struct rtio_iodev *iodev, struct rtio *ctx, void *u
 			return -ENOMEM;
 		}
 		if (handle != NULL) {
-			*handle = sqe;
+			*handle = rtio_sqe_handle(ctx, sqe);
 		}
 		rtio_sqe_prep_read_multishot(sqe, iodev, RTIO_PRIO_NORM, userdata);
 	}
@@ -1422,7 +1422,7 @@ static inline int adc_raw_to_millivolts(int32_t ref_mv, enum adc_gain gain, uint
 	if (ret == 0) {
 		adc_mv = adc_mv >> resolution;
 		if (adc_mv > INT32_MAX || adc_mv < INT32_MIN) {
-			__ASSERT_MSG_INFO("conversion result is out of range");
+			__ASSERT(false, "conversion result is out of range");
 		}
 
 		*valp = (int32_t)adc_mv;

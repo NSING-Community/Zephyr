@@ -864,15 +864,9 @@ starting point and the following board files will be used in addition:
   defconfig which is only used for the board and SOC / variants identified by
   ``<board>_<qualifiers>``.
 
-- :file:`<board>_<revision>_defconfig`: a specific revision defconfig which is
-  used for the board regardless of the SOC / variants.
-
 - :file:`<board>_<qualifiers>_<revision>.overlay`: a specific revision dts
   overlay which is only used for the board and SOC / variants identified by
   ``<board>_<qualifiers>``.
-
-- :file:`<board>_<revision>.overlay`: a specific revision dts overlay which is
-  used for the board regardless of the SOC / variants.
 
 This split allows boards with multiple SoCs, multi-core SoCs, or variants to
 place common revision adjustments which apply to all SoCs and variants in a
@@ -885,8 +879,7 @@ revision adjustments:
 .. code-block:: none
 
    boards/zephyr/plank
-   ├── plank_0_5_0_defconfig          # Kconfig adjustment for all plank board qualifiers on revision 0.5.0
-   ├── plank_0_5_0.overlay            # DTS overlay for all plank board qualifiers on revision 0.5.0
+   ├── plank_soc1_foo_1_5_0.overlay   # DTS overlay for plank board when building for soc1 variant foo on revision 1.5.0
    └── plank_soc1_foo_1_5_0_defconfig # Kconfig adjustment for plank board when building for soc1 variant foo on revision 1.5.0
 
 Custom revision.cmake files
@@ -925,8 +918,8 @@ The :makevar:`BOARD_REVISION` variable holds the revision value specified by the
 user.
 
 To signal to the build system that it should use a different revision than the
-one specified by the user, :file:`revision.cmake` can set the variable
-``ACTIVE_BOARD_REVISION`` to the revision to use instead. The corresponding
+one specified by the user, :file:`revision.cmake` can set the CMake variable
+:cmake:variable:`ACTIVE_BOARD_REVISION` to the revision to use instead. The corresponding
 Kconfig files and devicetree overlays must be named
 :file:`<board>_<ACTIVE_BOARD_REVISION>_defconfig` and
 :file:`<board>_<ACTIVE_BOARD_REVISION>.overlay`.

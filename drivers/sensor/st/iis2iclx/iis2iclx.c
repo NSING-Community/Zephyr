@@ -399,8 +399,7 @@ static inline int iis2iclx_hum_convert(struct sensor_value *val,
 	rh /= (ht->x1 - ht->x0);
 
 	/* convert humidity to integer and fractional part */
-	val->val1 = rh;
-	val->val2 = rh * 1000000;
+	sensor_value_from_float(val, rh);
 
 	return 0;
 }
@@ -651,7 +650,7 @@ static int iis2iclx_init(const struct device *dev)
 		(IIS2ICLX_CFG_IRQ(inst)), ())
 
 #define IIS2ICLX_SPI_OPERATION (SPI_WORD_SET(8) |			\
-				SPI_OP_MODE_MASTER |			\
+				SPI_OP_MODE_CONTROLLER |		\
 				SPI_MODE_CPOL |				\
 				SPI_MODE_CPHA)				\
 

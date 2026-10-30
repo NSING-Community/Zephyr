@@ -2,6 +2,53 @@
 
 include_guard(GLOBAL)
 
+#[=======================================================================[.rst:
+kconfig
+*******
+
+This module contains the Kconfig configuration logic.
+
+It provides the following targets:
+
+* ``menuconfig``: Run the Kconfig menuconfig tool.
+* ``guiconfig``: Run the Kconfig guiconfig tool.
+* ``hardenconfig``: Run the Kconfig hardenconfig tool.
+* ``traceconfig``: Run the Kconfig traceconfig tool.
+
+Variables
+=========
+
+After loading this module, the following global variables are defined:
+
+.. cmake:variable:: KCONFIG_ROOT
+
+   Path to the Kconfig root file.
+   Default: ``${ZEPHYR_BASE}/Kconfig``.
+
+.. cmake:variable:: AUTOCONF_H
+
+   Path to the generated autoconf header file.
+   Default: ``${PROJECT_BINARY_DIR}/include/generated/zephyr/autoconf.h``.
+
+.. cmake:variable:: DOTCONFIG
+
+   Path to the generated .config file.
+   Default: ``${PROJECT_BINARY_DIR}/.config``.
+
+.. cmake:variable:: EXTRA_KCONFIG_TARGETS
+
+   List of extra Kconfig targets to add.
+
+.. cmake:variable:: EXTRA_KCONFIG_TARGET_COMMAND_FOR_<target>
+
+   Command to run for the extra Kconfig target.
+
+The Kconfig fragments this module reads are selected by :cmake:variable:`CONF_FILE` and
+:cmake:variable:`EXTRA_CONF_FILE`, which are resolved by the :cmake:module:`configuration_files`
+module.
+
+#]=======================================================================]
+
 include(extensions)
 include(python)
 
@@ -209,6 +256,14 @@ if(NOT DEFINED KCONFIG_TARGETS)
   set(KCONFIG_TARGETS menuconfig guiconfig hardenconfig traceconfig)
 endif()
 
+# Settings for the hardenconfig target, forwarded to its environment
+# below. See scripts/kconfig/hardenconfig.py.
+zephyr_get(HARDENCONFIG_PROFILE SYSBUILD LOCAL)
+zephyr_get(HARDENCONFIG_EXTRA_SOURCES SYSBUILD LOCAL)
+zephyr_get(HARDENCONFIG_JSON SYSBUILD LOCAL)
+zephyr_get(HARDENCONFIG_SHOW_ALL SYSBUILD LOCAL)
+zephyr_get(HARDENCONFIG_STRICT SYSBUILD LOCAL)
+
 # Create the Kconfig targets. Skipped if KCONFIG_VARIANT_SOURCE is set, because
 # a variant image shall not be configured independently of its source image.
 if(NOT KCONFIG_VARIANT_SOURCE)
@@ -221,6 +276,11 @@ if(NOT KCONFIG_VARIANT_SOURCE)
       ${CMAKE_COMMAND} -E env
       ZEPHYR_BASE=${ZEPHYR_BASE}
       ${COMMON_KCONFIG_ENV_SETTINGS}
+      HARDENCONFIG_PROFILE=${HARDENCONFIG_PROFILE}
+      "HARDENCONFIG_EXTRA_SOURCES=${HARDENCONFIG_EXTRA_SOURCES}"
+      HARDENCONFIG_JSON=${HARDENCONFIG_JSON}
+      HARDENCONFIG_SHOW_ALL=${HARDENCONFIG_SHOW_ALL}
+      HARDENCONFIG_STRICT=${HARDENCONFIG_STRICT}
       SHIELD_AS_LIST='${SHIELD_AS_LIST_ESCAPED}'
       DTS_POST_CPP=${DTS_POST_CPP}
       DTS_ROOT_BINDINGS=${DTS_ROOT_BINDINGS}
@@ -232,6 +292,7 @@ if(NOT KCONFIG_VARIANT_SOURCE)
       USES_TERMINAL
       )
   endforeach()
+
 endif()
 
 # Support assigning Kconfig symbols on the command-line with CMake
@@ -399,12 +460,18 @@ if(NOT EXISTS ${autoconf_h_path})
   file(MAKE_DIRECTORY ${autoconf_h_path})
 endif()
 
+zephyr_get(KCONFIG_WARNING_AS_ERROR)
+if(KCONFIG_WARNING_AS_ERROR)
+  set(kconfig_py_flags --warning-as-error)
+endif()
+
 execute_process(
   COMMAND ${CMAKE_COMMAND} -E env
   ${COMMON_KCONFIG_ENV_SETTINGS}
   SHIELD_AS_LIST=${SHIELD_AS_LIST_ESCAPED_COMMAND}
   ${PYTHON_EXECUTABLE}
   ${ZEPHYR_BASE}/scripts/kconfig/kconfig.py
+  ${kconfig_py_flags}
   --zephyr-base=${ZEPHYR_BASE}
   ${input_configs_flags}
   ${KCONFIG_ROOT}

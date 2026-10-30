@@ -23,6 +23,7 @@
 #define TEST_ARRAYS	DT_NODELABEL(test_arrays)
 #define TEST_PH		DT_NODELABEL(test_phandles)
 #define TEST_INTC	DT_NODELABEL(test_intc)
+#define TEST_INTC2	DT_NODELABEL(test_intc2)
 #define TEST_IRQ	DT_NODELABEL(test_irq)
 #define TEST_IRQ_EXT	DT_NODELABEL(test_irq_extended)
 #define TEST_TEMP	DT_NODELABEL(test_temp_sensor)
@@ -32,7 +33,6 @@
 #define TEST_MODEL	DT_NODELABEL(test_vendor)
 #define TEST_ENUM_0	DT_NODELABEL(test_enum_0)
 #define TEST_64BIT	DT_NODELABEL(test_reg_64)
-#define TEST_INTC	DT_NODELABEL(test_intc)
 
 #define TEST_I2C DT_NODELABEL(test_i2c)
 #define TEST_I2C_DEV DT_PATH(test, i2c_11112222, test_i2c_dev_10)
@@ -50,7 +50,6 @@
 
 #define TEST_GPIO_1 DT_NODELABEL(test_gpio_1)
 #define TEST_GPIO_2 DT_NODELABEL(test_gpio_2)
-#define TEST_GPIO_4 DT_NODELABEL(test_gpio_4)
 
 #define TEST_GPIO_HOG_1 DT_PATH(test, gpio_deadbeef, test_gpio_hog_1)
 #define TEST_GPIO_HOG_2 DT_PATH(test, gpio_deadbeef, test_gpio_hog_2)
@@ -4844,22 +4843,22 @@ ZTEST(devicetree_api, test_interrupt_controller)
 {
 	/* DT_IRQ_INTC_BY_IDX */
 	zassert_true(DT_SAME_NODE(DT_IRQ_INTC_BY_IDX(TEST_IRQ_EXT, 0), TEST_INTC), "");
-	zassert_true(DT_SAME_NODE(DT_IRQ_INTC_BY_IDX(TEST_IRQ_EXT, 1), TEST_GPIO_4), "");
+	zassert_true(DT_SAME_NODE(DT_IRQ_INTC_BY_IDX(TEST_IRQ_EXT, 1), TEST_INTC2), "");
 
 	/* DT_IRQ_INTC_BY_NAME */
 	zassert_true(DT_SAME_NODE(DT_IRQ_INTC_BY_NAME(TEST_IRQ_EXT, int1), TEST_INTC), "");
-	zassert_true(DT_SAME_NODE(DT_IRQ_INTC_BY_NAME(TEST_IRQ_EXT, int2), TEST_GPIO_4), "");
+	zassert_true(DT_SAME_NODE(DT_IRQ_INTC_BY_NAME(TEST_IRQ_EXT, int2), TEST_INTC2), "");
 
 	/* DT_IRQ_INTC */
 	zassert_true(DT_SAME_NODE(DT_IRQ_INTC(TEST_IRQ_EXT), TEST_INTC), "");
 
 	/* DT_INST_IRQ_INTC_BY_IDX */
 	zassert_true(DT_SAME_NODE(DT_INST_IRQ_INTC_BY_IDX(0, 0), TEST_INTC), "");
-	zassert_true(DT_SAME_NODE(DT_INST_IRQ_INTC_BY_IDX(0, 1), TEST_GPIO_4), "");
+	zassert_true(DT_SAME_NODE(DT_INST_IRQ_INTC_BY_IDX(0, 1), TEST_INTC2), "");
 
 	/* DT_INST_IRQ_INTC_BY_NAME */
 	zassert_true(DT_SAME_NODE(DT_INST_IRQ_INTC_BY_NAME(0, int1), TEST_INTC), "");
-	zassert_true(DT_SAME_NODE(DT_INST_IRQ_INTC_BY_NAME(0, int2), TEST_GPIO_4), "");
+	zassert_true(DT_SAME_NODE(DT_INST_IRQ_INTC_BY_NAME(0, int2), TEST_INTC2), "");
 
 	/* DT_INST_IRQ_INTC */
 	zassert_true(DT_SAME_NODE(DT_INST_IRQ_INTC(0), TEST_INTC), "");
@@ -5056,6 +5055,53 @@ ZTEST(devicetree_api, test_map)
 				   9999);
 	DT_FOREACH_MAP_ENTRY_SEP_VARGS(TEST_INTERRUPT_NEXUS, interrupt_map,
 				       INTERRUPT_NEXUS_CHECK_VARGS, (), 9999);
+}
+
+#define TEST_CLASSDEV_A DT_NODELABEL(test_classdev_a)
+#define TEST_CLASSDEV_OFF DT_NODELABEL(test_classdev_off)
+
+ZTEST(devicetree_api, test_device_class)
+{
+	unsigned int count = 0;
+
+	/* Classes declared directly in the node's binding */
+	zassert_equal(DT_NODE_HAS_CLASS(TEST_CLASSDEV_A, vnd_class_a), 1);
+	zassert_equal(DT_NODE_HAS_CLASS(TEST_CLASSDEV_A, vnd_class_b), 1);
+	/* Class inherited from an included binding */
+	zassert_equal(DT_NODE_HAS_CLASS(TEST_CLASSDEV_A, vnd_service), 1);
+	zassert_equal(DT_NODE_HAS_CLASS(TEST_CLASSDEV_A, vnd_no_such_class), 0);
+	/* Class membership is independent of the node's status */
+	zassert_equal(DT_NODE_HAS_CLASS(TEST_CLASSDEV_OFF, vnd_class_a), 1);
+
+	zassert_equal(DT_HAS_CLASS_STATUS_OKAY(vnd_class_a), 1);
+	zassert_equal(DT_HAS_CLASS_STATUS_OKAY(vnd_no_such_class), 0);
+
+	/* The disabled node is not counted */
+	zassert_equal(DT_NUM_CLASS_STATUS_OKAY(vnd_class_a), 2);
+	zassert_equal(DT_NUM_CLASS_STATUS_OKAY(vnd_service), 2);
+	zassert_equal(DT_NUM_CLASS_STATUS_OKAY(vnd_no_such_class), 0);
+
+#define COUNT_CLASS_OKAY(node_id) count++;
+	DT_FOREACH_CLASS_STATUS_OKAY(vnd_class_a, COUNT_CLASS_OKAY)
+	zassert_equal(count, 2);
+
+	count = 0;
+	DT_FOREACH_CLASS_STATUS_OKAY(vnd_no_such_class, COUNT_CLASS_OKAY)
+	zassert_equal(count, 0);
+#undef COUNT_CLASS_OKAY
+
+#define ADD_ARG_CLASS_OKAY(node_id, arg) count += (arg);
+	count = 0;
+	DT_FOREACH_CLASS_STATUS_OKAY_VARGS(vnd_class_b, ADD_ARG_CLASS_OKAY, 2)
+	zassert_equal(count, 4);
+#undef ADD_ARG_CLASS_OKAY
+}
+
+ZTEST(devicetree_api, test_device_class_kconfig)
+{
+	/* $(dt_class_enabled,...) sees classes declared in bindings */
+	zassert_true(IS_ENABLED(CONFIG_TEST_DT_CLASS_ENABLED));
+	zassert_false(IS_ENABLED(CONFIG_TEST_DT_CLASS_ENABLED_MISSING));
 }
 
 ZTEST_SUITE(devicetree_api, NULL, NULL, NULL, NULL, NULL);

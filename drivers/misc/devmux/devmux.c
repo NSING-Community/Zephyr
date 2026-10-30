@@ -163,7 +163,7 @@ static int devmux_init(const struct device *dev)
 
 /**
  * That is needed in order to have a kernel object tracked for these devices.
- * An alternatie would be create a specific kernel object type, but that would
+ * An alternative would be create a specific kernel object type, but that would
  * just make things more complex.
  */
 static DEVICE_API(devmux, devmux_api) = {
@@ -199,5 +199,6 @@ static DEVICE_API(devmux, devmux_api) = {
 
 DT_INST_FOREACH_STATUS_OKAY(DEVMUX_DEFINE)
 
-#define DEVMUX_DEVICE_GET(_n) DEVICE_DT_INST_GET(_n),
-static const struct device *devmux_devices[] = {DT_INST_FOREACH_STATUS_OKAY(DEVMUX_DEVICE_GET)};
+static const struct device *devmux_devices[] = {
+	DT_INST_FOREACH_STATUS_OKAY(DEVICE_DT_INST_GET_COMMA)
+};

@@ -37,7 +37,7 @@ endif()
 # MCUX SDK NG needs `core_id` as input, it defines `core_id_suffix_name` based on
 # `core_id` in file "mcux-sdk-ng/devices/RT/RT500/MIMXRT595S/<core_id>".
 #
-# Zephyr provides `MCUX_CORE_SUFFIX` to distinguish the core, it is actaully the
+# Zephyr provides `MCUX_CORE_SUFFIX` to distinguish the core, it is actually the
 # `core_id_suffix_name` in MCUX SDK NG, here convert it to `core_id`, then pass
 # it to MCUX SDK NG.
 if(DEFINED CONFIG_MCUX_CORE_SUFFIX)
@@ -87,6 +87,17 @@ if(CONFIG_SOC_MIMX94398)
   set(CONFIG_MCUX_COMPONENT_driver.elec_spec ON)
 endif()
 
+# Same story on i.MX952: fsl_common_arm.h unconditionally includes
+# "fsl_clock.h" from the device drivers/ folder, and on the Cortex-A55 the
+# clocks are driven over SCMI so driver.clock is not selected above. Enable the
+# header-only memory component, which is what puts that folder on the include
+# path, for the whole device. driver.clock itself cannot be used here: its
+# fsl_clock.c talks to the system manager directly and is not built for SCMI
+# configurations.
+if(CONFIG_SOC_MIMX9529)
+  set(CONFIG_MCUX_COMPONENT_driver.memory ON)
+endif()
+
 # load device variables
 include(${mcux_device_folder}/variable.cmake)
 
@@ -112,6 +123,8 @@ elseif(CONFIG_CPU_CORTEX_M33)
   set(CONFIG_MCUX_HW_CORE cm33)
 elseif (CONFIG_CPU_CORTEX_M55)
   set(CONFIG_MCUX_HW_CORE cm55)
+elseif(CONFIG_CPU_CORTEX_M85)
+  set(CONFIG_MCUX_HW_CORE cm85)
 elseif(CONFIG_CPU_CORTEX_M4)
   if(CONFIG_CPU_HAS_FPU)
     set(CONFIG_MCUX_HW_CORE cm4f)
@@ -125,7 +138,7 @@ elseif(CONFIG_XTENSA)
 endif()
 
 if(CONFIG_CPU_HAS_FPU)
-  if(CONFIG_CPU_CORTEX_M33 OR CONFIG_CPU_CORTEX_M7 OR CONFIG_CPU_CORTEX_M55)
+  if(CONFIG_CPU_CORTEX_M33 OR CONFIG_CPU_CORTEX_M7 OR CONFIG_CPU_CORTEX_M55 OR CONFIG_CPU_CORTEX_M85)
     if(CONFIG_CPU_HAS_FPU_DOUBLE_PRECISION)
       set(CONFIG_MCUX_HW_FPU_TYPE fpv5_dp)
     else()

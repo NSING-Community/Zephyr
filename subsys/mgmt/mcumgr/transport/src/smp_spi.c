@@ -32,7 +32,7 @@ LOG_MODULE_DECLARE(mcumgr_smp, CONFIG_MCUMGR_TRANSPORT_LOG_LEVEL);
 
 #define SMP_SPI_NODE DT_DRV_INST(0)
 
-#define SMP_SPI_OPERATION (SPI_OP_MODE_SLAVE | SPI_WORD_SET(8) | SPI_TRANSFER_MSB)
+#define SMP_SPI_OPERATION (SPI_OP_MODE_PERIPHERAL | SPI_WORD_SET(8) | SPI_TRANSFER_MSB)
 
 static const struct spi_dt_spec smp_spi_spec = SPI_DT_SPEC_GET(SMP_SPI_NODE, SMP_SPI_OPERATION);
 static const struct gpio_dt_spec data_ready_gpio =
@@ -310,7 +310,9 @@ static void smp_spi_start(void)
 	k_mutex_init(&tx_lock);
 
 	smp_spi_transport.functions.output = smp_spi_tx_pkt;
+	TOOLCHAIN_DISABLE_WARNING(TOOLCHAIN_WARNING_DEPRECATED_DECLARATIONS);
 	smp_spi_transport.functions.get_mtu = smp_spi_get_mtu;
+	TOOLCHAIN_ENABLE_WARNING(TOOLCHAIN_WARNING_DEPRECATED_DECLARATIONS);
 
 	rc = smp_transport_init(&smp_spi_transport);
 	if (rc != 0) {

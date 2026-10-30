@@ -146,11 +146,14 @@
 	clock-frequency = <I2C_BITRATE_FAST>;
 };
 
+&adc4_common {
+	st,adc-prescaler = <4>;
+	status = "okay";
+};
+
 &adc4 {
 	pinctrl-0 = <&adc4_in8_pa1>;
 	pinctrl-names = "default";
-	st,adc-clock-source = "ASYNC";
-	st,adc-prescaler = <4>;
 	status = "okay";
 };
 
@@ -178,6 +181,11 @@
 	};
 };
 
+&pka {
+	interrupts = <62 7>;
+	status = "okay";
+};
+
 &aes {
 	status = "okay";
 };
@@ -190,6 +198,5 @@ zephyr_udc0: &usbotg_hs {
 	/* Select 32 MHz HSE as OTG HS PHY clock source */
 	clocks = <&rcc STM32_CLOCK(AHB2, 15)>,
 		 <&rcc STM32_SRC_HSE OTGHS_SEL(0)>;
-	clock-reference = "SYSCFG_OTG_HS_PHY_CLK_32MHz";
 	status = "okay";
 };

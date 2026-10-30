@@ -87,6 +87,15 @@ static struct bt_a2dp *a2dp_get_connection(struct bt_conn *conn)
 	a2dp = &connection[index];
 
 	if (a2dp->session.br_chan.chan.conn == NULL) {
+		/* The session release work submitted when the previous
+		 * connection was disconnected may still be pending. Wiping
+		 * a queued work item would corrupt the work queue, so
+		 * reject the object reuse until the work has completed.
+		 */
+		if (k_work_busy_get(&a2dp->session._release_work) != 0) {
+			return NULL;
+		}
+
 		/* Clean the memory area before returning */
 		(void)memset(a2dp, 0, sizeof(struct bt_a2dp));
 	}
@@ -731,11 +740,14 @@ static int bt_a2dp_get_capabilities_cb(struct bt_avdtp_req *req, struct net_buf 
 	bool delay_report;
 
 	LOG_DBG("GET CAPABILITIES result:%d", req->status);
+
+	if ((a2dp->discover_cb_param == NULL) || (a2dp->discover_cb_param->cb == NULL)) {
+		return 0;
+	}
+
 	if ((req->status != 0) || (buf == NULL)) {
-		if ((a2dp->discover_cb_param != NULL) && (a2dp->discover_cb_param->cb != NULL)) {
-			a2dp->discover_cb_param->cb(a2dp, NULL, NULL);
-			a2dp->discover_cb_param = NULL;
-		}
+		a2dp->discover_cb_param->cb(a2dp, NULL, NULL);
+		a2dp->discover_cb_param = NULL;
 		return 0;
 	}
 
@@ -744,11 +756,7 @@ static int bt_a2dp_get_capabilities_cb(struct bt_avdtp_req *req, struct net_buf 
 					      &delay_report);
 	if (err) {
 		LOG_DBG("codec capability parsing fail");
-		return 0;
-	}
-
-	if ((a2dp->discover_cb_param == NULL) || (a2dp->discover_cb_param->cb == NULL)) {
-		return 0;
+		goto next_discover;
 	}
 
 	if (codec_info_element_len > CONFIG_BT_A2DP_CODEC_MAX_IE_LEN) {

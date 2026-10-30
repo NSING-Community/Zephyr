@@ -113,6 +113,7 @@ static bool test_rx_timestamp_marked = true;
 
 static uint8_t lladdr1[] = { 0x02, 0x01, 0x01, 0x01, 0x01, 0x01 };
 static uint8_t lladdr2[] = { 0x02, 0x02, 0x02, 0x02, 0x02, 0x02 };
+static uint8_t lladdr3[] = { 0x02, 0x03, 0x03, 0x03, 0x03, 0x03 };
 
 struct eth_fake_context {
 	struct net_if *iface;
@@ -126,6 +127,10 @@ static struct eth_fake_context eth_fake_data1 = {
 };
 static struct eth_fake_context eth_fake_data2 = {
 	.mac_address = lladdr2
+};
+/* A device without a receive filter */
+static struct eth_fake_context eth_fake_data3 = {
+	.mac_address = lladdr3
 };
 
 /* Last multicast address the Ethernet L2 programmed to the receive filter
@@ -205,6 +210,15 @@ static enum ethernet_hw_caps eth_fake_get_capabilities(const struct device *dev,
 	return ETHERNET_HW_FILTERING;
 }
 
+static enum ethernet_hw_caps eth_fake_get_no_capabilities(const struct device *dev,
+							  struct net_if *iface)
+{
+	ARG_UNUSED(dev);
+	ARG_UNUSED(iface);
+
+	return 0;
+}
+
 static int eth_fake_set_config(const struct device *dev, struct net_if *iface,
 			       enum ethernet_config_type type,
 			       const struct ethernet_config *config)
@@ -237,6 +251,20 @@ ETH_NET_DEVICE_INIT(eth_fake1, "eth_fake1", NULL, NULL, &eth_fake_data1, NULL,
 
 ETH_NET_DEVICE_INIT(eth_fake2, "eth_fake2", NULL, NULL, &eth_fake_data2, NULL,
 		    CONFIG_ETH_INIT_PRIORITY, &eth_fake_api_funcs,
+		    NET_ETH_MTU);
+
+/* The device still records a receive filter request, so that the tests can
+ * see that it was not asked to filter.
+ */
+static struct ethernet_api eth_fake_no_filter_api_funcs = {
+	.iface_api.init = eth_fake_iface_init,
+	.get_capabilities = eth_fake_get_no_capabilities,
+	.set_config = eth_fake_set_config,
+	.send = eth_fake_send,
+};
+
+ETH_NET_DEVICE_INIT(eth_fake3, "eth_fake3", NULL, NULL, &eth_fake_data3, NULL,
+		    CONFIG_ETH_INIT_PRIORITY, &eth_fake_no_filter_api_funcs,
 		    NET_ETH_MTU);
 
 static void setup_packet_socket(int *sock, int type, int proto)
@@ -278,6 +306,7 @@ static void prepare_packet_socket(int *sock, struct net_if *iface, int type,
 struct user_data {
 	struct net_if *first;
 	struct net_if *second;
+	struct net_if *third;
 } ud;
 
 static void iface_cb(struct net_if *iface, void *user_data)
@@ -290,6 +319,11 @@ static void iface_cb(struct net_if *iface, void *user_data)
 	}
 
 	link_addr = net_if_get_link_addr(iface);
+	if (memcmp(link_addr->addr, lladdr3, sizeof(lladdr3)) == 0) {
+		test_data->third = iface;
+		return;
+	}
+
 	if (memcmp(link_addr->addr, lladdr1, sizeof(lladdr1)) != 0 &&
 	    memcmp(link_addr->addr, lladdr2, sizeof(lladdr2)) != 0) {
 		return;
@@ -1678,8 +1712,9 @@ ZTEST(socket_packet, test_packet_sock_setsockopt_other_level)
 	zassert_ok(ret, "Cannot set receive timeout (%d)", errno);
 }
 
-/* A packet socket membership must not stop the IP level joins from reaching
- * the receive filter.
+/* A packet socket membership must not stop the IP level multicast addresses
+ * from reaching the receive filter. The device is told about the address as
+ * soon as it is added to the interface, without waiting for a group report.
  */
 ZTEST(socket_packet, test_packet_sock_membership_eth_filter_ip)
 {
@@ -1687,14 +1722,12 @@ ZTEST(socket_packet, test_packet_sock_membership_eth_filter_ip)
 	static const uint8_t mcast_ip_lladdr[] = {
 		0x01, 0x00, 0x5e, 0x00, 0x00, 0xfb
 	};
-	struct net_addr addr = {
-		.family = NET_AF_INET,
-		.in_addr = { { { 224, 0, 0, 251 } } },
-	};
+	static const struct net_in_addr addr = { { { 224, 0, 0, 251 } } };
 
 	memset(&eth_filter_data, 0, sizeof(eth_filter_data));
 
-	net_if_mcast_monitor(ud.first, &addr, true);
+	zassert_not_null(net_if_ipv4_maddr_add(ud.first, &addr),
+			 "Cannot add multicast address");
 
 	zassert_equal(eth_filter_data.count, 1, "Filter not programmed");
 	zassert_equal(eth_filter_data.iface, ud.first,
@@ -1703,7 +1736,8 @@ ZTEST(socket_packet, test_packet_sock_membership_eth_filter_ip)
 	zassert_mem_equal(eth_filter_data.mac_address.addr, mcast_ip_lladdr,
 			  sizeof(mcast_ip_lladdr), "Wrong address filtered");
 
-	net_if_mcast_monitor(ud.first, &addr, false);
+	zassert_true(net_if_ipv4_maddr_rm(ud.first, &addr),
+		     "Cannot remove multicast address");
 
 	zassert_equal(eth_filter_data.count, 2, "Filter not removed");
 	zassert_false(eth_filter_data.set, "Filter not disabled");
@@ -1716,10 +1750,7 @@ ZTEST(socket_packet, test_packet_sock_membership_eth_filter_ip)
 ZTEST(socket_packet, test_packet_sock_membership_eth_filter_shared)
 {
 	/* 224.0.0.1 maps to mcast_lladdr */
-	struct net_addr addr = {
-		.family = NET_AF_INET,
-		.in_addr = { { { 224, 0, 0, 1 } } },
-	};
+	static const struct net_in_addr addr = { { { 224, 0, 0, 1 } } };
 	struct net_packet_mreq mreq;
 	int ret;
 
@@ -1728,7 +1759,8 @@ ZTEST(socket_packet, test_packet_sock_membership_eth_filter_shared)
 
 	memset(&eth_filter_data, 0, sizeof(eth_filter_data));
 
-	net_if_mcast_monitor(ud.first, &addr, true);
+	zassert_not_null(net_if_ipv4_maddr_add(ud.first, &addr),
+			 "Cannot add multicast address");
 
 	zassert_equal(eth_filter_data.count, 1, "Filter not programmed");
 	zassert_true(eth_filter_data.set, "Filter not enabled");
@@ -1752,7 +1784,8 @@ ZTEST(socket_packet, test_packet_sock_membership_eth_filter_shared)
 	zassert_true(eth_filter_data.set,
 		     "Filter disabled while the IP level still needs the group");
 
-	net_if_mcast_monitor(ud.first, &addr, false);
+	zassert_true(net_if_ipv4_maddr_rm(ud.first, &addr),
+		     "Cannot remove multicast address");
 
 	zassert_equal(eth_filter_data.count, 2, "Filter not removed");
 	zassert_false(eth_filter_data.set, "Filter not disabled");
@@ -1767,31 +1800,29 @@ ZTEST(socket_packet, test_packet_sock_membership_eth_filter_shared)
 ZTEST(socket_packet, test_packet_sock_membership_eth_filter_alias)
 {
 	/* Both of these map to mcast_lladdr */
-	struct net_addr first = {
-		.family = NET_AF_INET,
-		.in_addr = { { { 224, 0, 0, 1 } } },
-	};
-	struct net_addr second = {
-		.family = NET_AF_INET,
-		.in_addr = { { { 225, 0, 0, 1 } } },
-	};
+	static const struct net_in_addr first = { { { 224, 0, 0, 1 } } };
+	static const struct net_in_addr second = { { { 225, 0, 0, 1 } } };
 
 	memset(&eth_filter_data, 0, sizeof(eth_filter_data));
 
-	net_if_mcast_monitor(ud.first, &first, true);
-	net_if_mcast_monitor(ud.first, &second, true);
+	zassert_not_null(net_if_ipv4_maddr_add(ud.first, &first),
+			 "Cannot add multicast address");
+	zassert_not_null(net_if_ipv4_maddr_add(ud.first, &second),
+			 "Cannot add multicast address");
 
 	zassert_equal(eth_filter_data.count, 1,
 		      "Filter programmed per IP address instead of per group");
 
-	net_if_mcast_monitor(ud.first, &first, false);
+	zassert_true(net_if_ipv4_maddr_rm(ud.first, &first),
+		     "Cannot remove multicast address");
 
 	zassert_equal(eth_filter_data.count, 1,
 		      "Filter changed while the address is still in use");
 	zassert_true(eth_filter_data.set,
 		     "Filter disabled while the address is still in use");
 
-	net_if_mcast_monitor(ud.first, &second, false);
+	zassert_true(net_if_ipv4_maddr_rm(ud.first, &second),
+		     "Cannot remove multicast address");
 
 	zassert_equal(eth_filter_data.count, 2, "Filter not removed");
 	zassert_false(eth_filter_data.set, "Filter not disabled");
@@ -1838,6 +1869,27 @@ ZTEST(socket_packet, test_packet_sock_membership_eth_filter_full)
 		ret = net_eth_mcast_addr_rm(ud.first, &addr);
 		zassert_ok(ret, "Cannot remove address %d (%d)", i, ret);
 	}
+}
+
+/* A device with no receive filter passes the group up anyway, so the join
+ * succeeds and the address is tracked for a filter programmed later.
+ */
+ZTEST(socket_packet, test_packet_sock_membership_no_hw_filtering)
+{
+	struct net_eth_addr addr = { { 0x01, 0x00, 0x5e, 0x00, 0x00, 0x01 } };
+	int ret;
+
+	memset(&eth_filter_data, 0, sizeof(eth_filter_data));
+
+	ret = net_eth_mcast_addr_add(ud.third, &addr);
+	zexpect_ok(ret, "Cannot join without HW filtering (%d)", ret);
+	zexpect_equal(mcast_addr_count(ud.third), 1, "Group not tracked");
+	zexpect_equal(eth_filter_data.count, 0, "Device asked to filter");
+
+	ret = net_eth_mcast_addr_rm(ud.third, &addr);
+	zexpect_ok(ret, "Cannot leave without HW filtering (%d)", ret);
+	zexpect_equal(mcast_addr_count(ud.third), 0, "Group still tracked");
+	zexpect_equal(eth_filter_data.count, 0, "Device asked to filter");
 }
 
 /* An interface that cannot track another multicast address must say so to the
@@ -1974,10 +2026,7 @@ ZTEST(socket_packet, test_packet_sock_membership_eth_filter_foreach)
 ZTEST(socket_packet, test_packet_sock_membership_eth_filter_mgmt)
 {
 	/* 224.0.0.1 maps to mcast_lladdr */
-	struct net_addr addr = {
-		.family = NET_AF_INET,
-		.in_addr = { { { 224, 0, 0, 1 } } },
-	};
+	static const struct net_in_addr addr = { { { 224, 0, 0, 1 } } };
 	struct net_eth_addr mac;
 	int ret;
 
@@ -1996,12 +2045,14 @@ ZTEST(socket_packet, test_packet_sock_membership_eth_filter_mgmt)
 	/* The device already listens to the address so it must not be told
 	 * about it a second time.
 	 */
-	net_if_mcast_monitor(ud.first, &addr, true);
+	zassert_not_null(net_if_ipv4_maddr_add(ud.first, &addr),
+			 "Cannot add multicast address");
 
 	zassert_equal(eth_filter_data.count, 1,
 		      "Filter programmed again for an already filtered address");
 
-	net_if_mcast_monitor(ud.first, &addr, false);
+	zassert_true(net_if_ipv4_maddr_rm(ud.first, &addr),
+		     "Cannot remove multicast address");
 
 	zassert_equal(eth_filter_data.count, 1,
 		      "Filter removed while the application still needs it");
@@ -2089,12 +2140,7 @@ ZTEST(socket_packet, test_packet_sock_membership_eth_filter_mgmt_errors)
 
 	eth_filter_ret = 0;
 
-	/* The address was taken into use even though the device refused it,
-	 * so it can be given back.
-	 */
-	ret = net_eth_mac_filter(ud.first, &mac,
-				 ETHERNET_FILTER_TYPE_DST_MAC_ADDRESS, false);
-	zassert_ok(ret, "Cannot unset the filter (%d)", ret);
+	/* The address was removed because the device refused it. */
 	zassert_equal(eth_filter_data.count, 2, "Filter not removed");
 	zassert_false(eth_filter_data.set, "Filter not disabled");
 }
@@ -2241,6 +2287,7 @@ static void *test_setup(void)
 
 	zassert_not_null(ud.first, "1st Ethernet interface not found");
 	zassert_not_null(ud.second, "2nd Ethernet interface not found");
+	zassert_not_null(ud.third, "3rd Ethernet interface not found");
 
 	return NULL;
 }

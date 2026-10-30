@@ -150,11 +150,14 @@
 	clock-frequency = <I2C_BITRATE_FAST>;
 };
 
+&adc4_common {
+	st,adc-prescaler = <4>;
+	status = "okay";
+};
+
 &adc4 {
 	pinctrl-0 = <&adc4_in6_pa3>;
 	pinctrl-names = "default";
-	st,adc-clock-source = "ASYNC";
-	st,adc-prescaler = <4>;
 	status = "okay";
 	#address-cells = <1>;
 	#size-cells = <0>;
@@ -179,16 +182,8 @@
 	status = "okay";
 };
 
-&bt_hci_wba {
-	/* Use HASH IRQn as Radio SW IRQ (HASH peripheral must not be enabled!) */
-	interrupts = <66 0>, <61 14>;
-	interrupt-names = "radio", "radio-sw-low";
-};
-
-&ieee802154 {
-	/* Use HASH IRQn as Radio SW IRQ (HASH peripheral must not be enabled!) */
-	interrupts = <66 0>, <61 14>;
-	interrupt-names = "radio", "radio-sw-low";
+&pka {
+	interrupts = <62 7>;
 	status = "okay";
 };
 

@@ -48,7 +48,7 @@
 				compatible = "zephyr,power-state";
 				power-state-name = "standby";
 				min-residency-us = <1000>;
-				exit-latency-us = <50>;
+				exit-latency-us = <0>;
 			};
 
 			deep_sleep: deep_sleep {
@@ -99,6 +99,13 @@
 		#size-cells = <1>;
 		compatible = "simple-bus";
 		ranges;
+
+		/* ROM code region, contains the libc and utility functions */
+		soc_rom: memory@40000000 {
+			compatible = "zephyr,memory-region";
+			reg = <0x40000000 DT_SIZE_K(128)>;
+			zephyr,memory-region = "SOC_ROM";
+		};
 
 		sramhp: memory@40800000 {
 			compatible = "zephyr,memory-region", "mmio-sram";
