@@ -1,0 +1,10 @@
+# Copyright (c) 2026 Nations Technologies
+# SPDX-License-Identifier: Apache-2.0
+
+config PINCTRL_N32H7
+	bool "Nations N32H78x pin controller backend"
+	default y
+	depends on DT_HAS_NSING_N32H7_PINCTRL_ENABLED
+	help
+	  Enable the N32H78x AFIO/GPIO pinmux backend. This backend is separate
+	  from PINCTRL_N32, which is the legacy N32G45x AFIO implementation.
