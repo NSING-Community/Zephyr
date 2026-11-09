@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: Copyright The Zephyr Project Contributors
+# SPDX-License-Identifier: Apache-2.0
+
+name: N32H787XIB7-STB
+type: mcu
+arch: arm
+toolchain:
+  - zephyr
+ram: 128
+flash: 512
+supported:
+  - uart
+  - watchdog
+vendor: nsing
+variants:
+  n32h787xib7_stb/n32h787/cm4:
+    ram: 143
+    flash: 512

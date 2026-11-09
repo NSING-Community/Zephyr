@@ -1,0 +1,11 @@
+# SPDX-License-Identifier: Apache-2.0
+
+# The Cortex-M4 has a single-precision FPU, but this image leaves CONFIG_FPU
+# disabled; applications that need hardware floating point can enable it.
+CONFIG_ARM_MPU=y
+CONFIG_SYS_CLOCK_HW_CYCLES_PER_SEC=64000000
+
+CONFIG_CLOCK_CONTROL=y
+CONFIG_SERIAL=y
+CONFIG_CONSOLE=y
+CONFIG_UART_CONSOLE=y

@@ -1,0 +1,6 @@
+board:
+  name: n32h787xib7_stb
+  full_name: N32H787XIB7-STB
+  vendor: nsing
+  socs:
+    - name: n32h787

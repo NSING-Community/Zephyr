@@ -1,0 +1,23 @@
+/*
+ * Copyright (c) 2026 Nations Technologies
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/dts-v1/;
+#include <nsing/n32h78x/n32h787_cm4.dtsi>
+
+/ {
+	model = "N32H787XIB7-STB Cortex-M4";
+	compatible = "nsing,n32h787xib7-stb-cm4";
+
+	chosen {
+		zephyr,sram = &sram0;
+		zephyr,flash = &flash0;
+		zephyr,console = &usart3;
+	};
+};
+
+&usart3 {
+	current-speed = <115200>;
+	status = "okay";
+};
