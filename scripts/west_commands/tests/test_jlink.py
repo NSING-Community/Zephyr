@@ -12,6 +12,7 @@ from unittest.mock import patch
 import pytest
 from conftest import RC_GDB, RC_KERNEL_ELF
 
+from runners.core import FileType
 from runners.jlink import JLinkBinaryRunner
 
 #
@@ -97,6 +98,25 @@ def client_cmd(runner_config):
     return _run
 
 
+@pytest.fixture
+def flash_lines(runner_config):
+    '''Return the J-Link commander script for a flash command.'''
+
+    def _run(argv=()):
+        runner = create_from_args(runner_config, argv)
+        runner._jlink_version = TEST_JLINK_VERSION
+        runner._build_conf = SimpleNamespace(getboolean=lambda option: False)
+        runner.file = 'test.hex'
+        runner.file_type = FileType.HEX
+
+        with patch('runners.jlink.os.path.isfile', return_value=True):
+            _, lines = runner.get_default_flash_commands()
+
+        return lines
+
+    return _run
+
+
 #
 # Test cases
 #
@@ -141,6 +161,24 @@ def client_cmd(runner_config):
 )
 def test_client_cmd(client_cmd, command, argv, expected):
     assert client_cmd(command, argv) == expected
+
+
+@pytest.mark.parametrize(
+    'argv, starts',
+    [
+        # The target is started by default.
+        ([], True),
+        (['--start'], True),
+        # --no-start leaves it halted, e.g. for a second core that another
+        # image releases later.
+        (['--no-start'], False),
+    ],
+)
+def test_flash_start_option(flash_lines, argv, starts):
+    lines = flash_lines(argv)
+
+    assert ('g' in lines) == starts
+    assert lines[-1] == 'q'
 
 
 def test_gdb_init_passed_verbatim(client_cmd):

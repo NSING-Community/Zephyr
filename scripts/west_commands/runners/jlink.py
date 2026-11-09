@@ -51,6 +51,7 @@ class JLinkBinaryRunner(ZephyrBinaryRunner):
     def __init__(self, cfg, device, dev_id=None,
                  commander=DEFAULT_JLINK_EXE,
                  dt_flash=True, erase=True, reset=False, reset_type=None,
+                 start=True,
                  iface='swd', speed='auto',
                  flash_script = None, loader=None, flash_sram=False,
                  gdbserver=DEFAULT_JLINK_GDB_SERVER,
@@ -76,6 +77,7 @@ class JLinkBinaryRunner(ZephyrBinaryRunner):
         self.flash_sram = flash_sram
         self.erase = erase
         self.reset = reset
+        self.start = start
         self.reset_type = reset_type
         self.gdbserver = gdbserver
         self.iface = iface
@@ -204,6 +206,8 @@ class JLinkBinaryRunner(ZephyrBinaryRunner):
                             {DEFAULT_JLINK_EXE}''')
         parser.add_argument('--reset-after-load', action=argparse.BooleanOptionalAction,
                             dest='reset', help='obsolete synonym for --reset/--no-reset')
+        parser.add_argument('--start', action=argparse.BooleanOptionalAction, default=True,
+                            help='start the target after flashing (default: yes)')
         parser.add_argument('--rtt-port', default=DEFAULT_JLINK_RTT_PORT,
                             help=f'jlink rtt port, defaults to {DEFAULT_JLINK_RTT_PORT}')
         parser.add_argument('--rtt-channel', type=int, default=None,
@@ -229,6 +233,7 @@ class JLinkBinaryRunner(ZephyrBinaryRunner):
                                  flash_sram=args.flash_sram,
                                  erase=args.erase,
                                  reset=args.reset,
+                                 start=args.start,
                                  iface=args.iface, speed=args.speed,
                                  reset_type=args.reset_type,
                                  flash_script=args.flash_script,
@@ -564,7 +569,8 @@ class JLinkBinaryRunner(ZephyrBinaryRunner):
             sram_addr = self.sram_address_from_build_conf(self.build_conf)
             lines.append(f'WReg PC 0x{sram_addr:x}') # Change PC to start of SRAM
 
-        lines.append('g') # Start the CPU
+        if self.start:
+            lines.append('g') # Start the CPU
 
         # Reset the Debug Port CTRL/STAT register
         # Under normal operation this is done automatically, but if other
