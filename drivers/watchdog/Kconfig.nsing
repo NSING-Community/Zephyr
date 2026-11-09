@@ -5,6 +5,7 @@ config WDT_N32_IWDG
 	bool "Nations N32 independent watchdog driver"
 	default y
 	depends on DT_HAS_NSING_N32_IWDG_ENABLED
+	depends on CLOCK_CONTROL
 	help
 	  Enable the independent watchdog (IWDG) driver for Nations N32 MCUs.
 
@@ -12,5 +13,24 @@ config WDT_N32_WWDG
 	bool "Nations N32 window watchdog driver"
 	default y
 	depends on DT_HAS_NSING_N32_WWDG_ENABLED
+	depends on CLOCK_CONTROL
 	help
 	  Enable the window watchdog (WWDG) driver for Nations N32 MCUs.
+
+config WDT_N32H7_IWDG
+	bool "Nations N32H7 independent watchdog driver"
+	default y
+	depends on SOC_SERIES_N32H78X
+	depends on DT_HAS_NSING_N32H7_IWDG_ENABLED
+	depends on CLOCK_CONTROL
+	help
+	  Enable the multi-instance N32H78x IWDG driver.
+
+config WDT_N32H7_WWDG
+	bool "Nations N32H7 window watchdog driver"
+	default y
+	depends on SOC_SERIES_N32H78X
+	depends on DT_HAS_NSING_N32H7_WWDG_ENABLED
+	depends on CLOCK_CONTROL
+	help
+	  Enable the multi-instance N32H78x WWDG driver.
