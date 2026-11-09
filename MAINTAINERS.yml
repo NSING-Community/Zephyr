@@ -4735,6 +4735,30 @@ NXP Platforms (S32):
   tests:
     - sample.boards.nxp_s32.netc
 
+Nations N32H78X Platforms:
+  status: maintained
+  maintainers:
+    - cai-jia123
+  files:
+    - boards/nsing/n32h787xib7_stb/
+    - dts/arm/nsing/n32h78x/
+    - dts/bindings/*/nsing,n32h7*
+    - drivers/*/*n32h7*
+    - include/zephyr/dt-bindings/clock/n32h7_clock.h
+    - include/zephyr/dt-bindings/pinctrl/n32h7-pinctrl.h
+    - modules/hal_nsing/CMakeLists.txt
+    - modules/hal_nsing/Kconfig
+    - samples/nsing/n32h7/
+    - soc/nsing/nsing_n32/n32h78x/
+    - tests/drivers/uart/nsing/
+  labels:
+    - "platform: Nations N32H78X"
+  tests:
+    - drivers.uart.nsing
+    - drivers.watchdog.n32h7_iwdg_cm4
+    - drivers.watchdog.n32h7_iwdg_cm7
+    - drivers.watchdog.n32h7_wwdg
+
 Native_sim and POSIX arch:
   status: maintained
   maintainers:

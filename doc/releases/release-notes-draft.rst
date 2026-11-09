@@ -76,6 +76,10 @@ New Boards
   that this list will be recomputed at the time of the release, so you don't *have* to update it.
   In any case, just link the board, further details go in the board description.
 
+* Nations Technologies
+
+  * :zephyr:board:`n32h787xib7_stb` (``n32h787xib7_stb``)
+
 .. _shields_added_in_zephyr_4_6:
 
 New Shields
@@ -90,6 +94,31 @@ New Drivers
 ..
   Same as above, this will also be recomputed at the time of the release.
   Just link the driver, further details go in the binding description
+
+* Clock control
+
+  * :dtcompatible:`nsing,n32h7-rcc`
+
+* :abbr:`GPIO (General Purpose Input/Output)`
+
+  * :dtcompatible:`nsing,n32h7-gpio`
+
+* Mailbox
+
+  * :dtcompatible:`nsing,n32h7-dcmu`
+
+* Pin control
+
+  * :dtcompatible:`nsing,n32h7-pinctrl`
+
+* Serial controller
+
+  * :dtcompatible:`nsing,n32h7-uart`
+
+* Watchdog
+
+  * :dtcompatible:`nsing,n32h7-iwdg`
+  * :dtcompatible:`nsing,n32h7-wwdg`
 
 New Samples
 ***********
