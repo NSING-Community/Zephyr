@@ -2,6 +2,8 @@
 
 zephyr_library()
 
+zephyr_library_sources_ifdef(CONFIG_CLOCK_CONTROL_N32H7 clock_n32h7.c)
+
 if(CONFIG_CLOCK_CONTROL_RENESAS_RZA2M_CPG)
   zephyr_library_sources(clock_control_renesas_rza2m_cpg.c)
   zephyr_library_sources(clock_control_renesas_rza2m_cpg_lld.c)
