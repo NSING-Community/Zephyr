@@ -1,0 +1,22 @@
+/*
+ * Copyright (c) 2026 Nations Technologies
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Cortex-M7 IWDG variant of the generic watchdog API test.  This overlay is
+ * selected explicitly by tests.yaml, so it replaces the default board overlay
+ * that points watchdog0 at WWDG1.
+ */
+
+/ {
+	aliases {
+		watchdog0 = &iwdg1;
+	};
+};
+
+&iwdg1 {
+	status = "okay";
+};
+
+&wwdg1 {
+	status = "disabled";
+};

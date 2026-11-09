@@ -1,0 +1,19 @@
+/*
+ * Copyright (c) 2026 Nations Technologies
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/ {
+	aliases {
+		watchdog0 = &wwdg2;
+	};
+};
+
+/* WWDG2 is the Cortex-M4 window watchdog; keep IWDG out of the test. */
+&iwdg2 {
+	status = "disabled";
+};
+
+&wwdg2 {
+	status = "okay";
+};

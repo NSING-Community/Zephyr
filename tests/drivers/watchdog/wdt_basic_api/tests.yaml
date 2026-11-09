@@ -47,6 +47,10 @@ tests:
       - mcxw23_evk
       - pic32cx_sg61_cult
       - raytac_an54lv_db_15/nrf54l15/cpuapp/ns
+      # A watchdog reset re-holds the Cortex-M4 and nothing releases it again
+      # without a CM7 companion image; the dedicated N32H7 CM4 scenarios are
+      # build-only.
+      - n32h787xib7_stb/n32h787/cm4
   drivers.watchdog.stm32wwdg:
     filter: dt_compat_enabled("st,stm32-window-watchdog") or dt_compat_enabled("st,stm32-watchdog")
     extra_args: DTC_OVERLAY_FILE="boards/stm32_wwdg.overlay"
@@ -166,6 +170,36 @@ tests:
       - n32g45xml_stb
     integration_platforms:
       - n32g45xml_stb
+  # The WWDG1 reset is a system reset, but the Cortex-M7 boots the test image
+  # again from flash, so this scenario runs standalone on the CM7.
+  drivers.watchdog.n32h7_wwdg:
+    platform_allow:
+      - n32h787xib7_stb/n32h787/cm7
+    integration_platforms:
+      - n32h787xib7_stb/n32h787/cm7
+  # Build only: a WWDG2 reset re-holds the Cortex-M4, and no orchestration
+  # exists to flash a CM7 companion image that releases it again.
+  drivers.watchdog.n32h7_wwdg_cm4:
+    build_only: true
+    platform_allow:
+      - n32h787xib7_stb/n32h787/cm4
+    integration_platforms:
+      - n32h787xib7_stb/n32h787/cm4
+  drivers.watchdog.n32h7_iwdg_cm7:
+    extra_args: DTC_OVERLAY_FILE="boards/n32h7_iwdg_cm7.overlay"
+    platform_allow:
+      - n32h787xib7_stb/n32h787/cm7
+    integration_platforms:
+      - n32h787xib7_stb/n32h787/cm7
+  # The IWDG2 reset re-holds the Cortex-M4, so this scenario is build-only
+  # until a CM7 companion image can be flashed and started automatically.
+  drivers.watchdog.n32h7_iwdg_cm4:
+    build_only: true
+    extra_args: DTC_OVERLAY_FILE="boards/n32h7_iwdg_cm4.overlay"
+    platform_allow:
+      - n32h787xib7_stb/n32h787/cm4
+    integration_platforms:
+      - n32h787xib7_stb/n32h787/cm4
   drivers.watchdog.nxp_s32:
     build_only: true
     platform_allow:

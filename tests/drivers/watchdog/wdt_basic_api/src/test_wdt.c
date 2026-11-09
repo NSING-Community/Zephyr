@@ -141,6 +141,23 @@
 #if DT_HAS_COMPAT_STATUS_OKAY(nsing_n32_wwdg)
 #define WDT_TEST_MAX_WINDOW 20U
 #endif
+#if DT_HAS_COMPAT_STATUS_OKAY(nsing_n32h7_wwdg)
+/*
+ * The N32H7 early-wakeup interrupt fires one prescaler tick before the
+ * counter rolls over into a reset, so the callback has to be serviced within
+ * a single tick. Keep the window long enough to select TIMERB >= 2 (>= 256 us
+ * of margin at the 64 MHz HSI rate); 5000 ms selects TIMERB = 3.
+ */
+#define WDT_TEST_MAX_WINDOW 5000U
+#endif
+#if DT_HAS_COMPAT_STATUS_OKAY(nsing_n32h7_iwdg)
+/*
+ * The N32H7 IWDG cannot be stopped once started.  Leave a window between
+ * boot and the first feed so a debugger or the flash downloader can attach
+ * even when a previous run left the SoC resetting.
+ */
+#define WDT_TEST_ARM_DELAY_MS 3000U
+#endif
 #if DT_HAS_COMPAT_STATUS_OKAY(nordic_nrf_gswdt) && !defined(CONFIG_NRFS_GSWDT_SERVICE_ENABLED)
 #define WDT_TEST_MAX_WINDOW 6000U
 #endif
@@ -277,6 +294,11 @@ static int test_wdt_no_callback(void)
 		TC_PRINT("Testcase passed\n");
 		return TC_PASS;
 	}
+
+#ifdef WDT_TEST_ARM_DELAY_MS
+	TC_PRINT("Waiting %u ms before arming the watchdog\n", WDT_TEST_ARM_DELAY_MS);
+	k_sleep(K_MSEC(WDT_TEST_ARM_DELAY_MS));
+#endif
 
 	m_cfg_wdt0.callback = NULL;
 	m_cfg_wdt0.flags = WDT_FLAG_RESET_SOC;

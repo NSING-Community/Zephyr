@@ -1,6 +1,15 @@
 # Copyright (c) 2026 Nations Technologies Inc.
 # SPDX-License-Identifier: Apache-2.0
 
-mainmenu "N32G45x UART API Test"
+mainmenu "N32 UART API Test"
 
 source "Kconfig.zephyr"
+
+config TEST_UART_N32H7
+	bool
+	default y if SOC_SERIES_N32H78X
+	select UART_N32H7_INTERRUPT
+
+config TEST_UART_SKIP_RTS_CTS
+	bool
+	default y if SOC_SERIES_N32H78X

@@ -1,0 +1,37 @@
+/*
+ * Copyright (c) 2026 Nations Technologies
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Cortex-M4 IWDG variant of the generic watchdog API test.  This overlay is
+ * selected explicitly by tests.yaml, so it replaces the default board overlay
+ * that points watchdog0 at WWDG2.
+ *
+ * USART3 is used for the test console because the board USB-UART is wired to
+ * the CM7 USART1 pins; PD8/PD9 are available on the header for an external
+ * adapter.
+ */
+
+/ {
+	aliases {
+		watchdog0 = &iwdg2;
+	};
+
+	chosen {
+		zephyr,console = &usart3;
+	};
+};
+
+&iwdg2 {
+	status = "okay";
+};
+
+&wwdg2 {
+	status = "disabled";
+};
+
+&usart3 {
+	pinctrl-0 = <&usart3_tx &usart3_rx>;
+	pinctrl-names = "default";
+	current-speed = <115200>;
+	status = "okay";
+};

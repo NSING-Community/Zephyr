@@ -1,0 +1,34 @@
+/*
+ * Copyright (c) 2026 Nations Technologies
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/ {
+	chosen {
+		/* Keep console traffic off the two UARTs under test. */
+		zephyr,console = &usart3;
+		zephyr,uart-test = &usart1;
+		zephyr,uart-peer = &usart2;
+	};
+};
+
+&usart1 {
+	pinctrl-0 = <&usart1_tx &usart1_rx>;
+	pinctrl-names = "default";
+	current-speed = <115200>;
+	status = "okay";
+};
+
+&usart2 {
+	pinctrl-0 = <&usart2_tx &usart2_rx>;
+	pinctrl-names = "default";
+	current-speed = <115200>;
+	status = "okay";
+};
+
+&usart3 {
+	pinctrl-0 = <&usart3_tx &usart3_rx>;
+	pinctrl-names = "default";
+	current-speed = <115200>;
+	status = "okay";
+};

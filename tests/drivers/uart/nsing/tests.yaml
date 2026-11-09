@@ -6,11 +6,10 @@ tests:
     tags:
       - drivers
       - uart
-    platform_allow: n32g45xml_stb
     vendor_allow:
       - nsing
-    harness: console
-    harness_config:
-      type: one_line
-      regex:
-        - "PROJECT EXECUTION SUCCESSFUL"
+    platform_allow:
+      - n32g45xml_stb/n32g457
+      - n32h787xib7_stb/n32h787/cm7
+      - n32h787xib7_stb/n32h787/cm4
+    harness: ztest
