@@ -1,0 +1,13 @@
+# Copyright (c) 2026 Nations Technologies
+# SPDX-License-Identifier: Apache-2.0
+
+source "share/sysbuild/Kconfig"
+
+config N32H7_CM4_IMAGE
+	bool "Build the Cortex-M4 image alongside the Cortex-M7 image"
+	depends on BOARD_N32H787XIB7_STB_N32H787_CM7
+	default y
+	help
+	  Build the Cortex-M4 image from the cm4/ application directory. The
+	  image is build-only because the two cores use separate xSPI windows
+	  and are programmed independently.

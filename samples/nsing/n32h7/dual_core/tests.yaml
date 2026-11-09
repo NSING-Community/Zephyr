@@ -1,0 +1,15 @@
+# Copyright (c) 2026 Nations Technologies
+# SPDX-License-Identifier: Apache-2.0
+
+sample:
+  name: N32H787 dual-core
+
+tests:
+  sample.nsing.n32h7.dual_core:
+    build_only: true
+    platform_allow:
+      - n32h787xib7_stb/n32h787/cm7
+    sysbuild: true
+    tags:
+      - uart
+    timeout: 120

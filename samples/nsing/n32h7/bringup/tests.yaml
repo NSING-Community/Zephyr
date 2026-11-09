@@ -1,0 +1,91 @@
+# Copyright (c) 2026 Nations Technologies
+# SPDX-License-Identifier: Apache-2.0
+
+sample:
+  name: N32H787 dual-core bring-up
+
+tests:
+  sample.nsing.n32h7.bringup.sysbuild:
+    build_only: true
+    platform_allow:
+      - n32h787xib7_stb/n32h787/cm7
+    sysbuild: true
+    extra_args: bringup_EXTRA_CONF_FILE="uart.conf;cm7_product.conf"
+    tags:
+      - gpio
+      - uart
+      - watchdog
+    timeout: 120
+
+  sample.nsing.n32h7.bringup.cm7.product:
+    build_only: true
+    platform_allow:
+      - n32h787xib7_stb/n32h787/cm7
+    extra_args: EXTRA_CONF_FILE="uart.conf;cm7_product.conf"
+    tags:
+      - gpio
+      - uart
+      - watchdog
+    timeout: 60
+
+  sample.nsing.n32h7.bringup.cm4.product:
+    build_only: true
+    platform_allow:
+      - n32h787xib7_stb/n32h787/cm4
+    extra_args: EXTRA_CONF_FILE=cm4_product.conf
+    tags:
+      - gpio
+      - uart
+      - watchdog
+    timeout: 60
+
+  # Runs on hardware with --device-testing: the console USART must receive
+  # bursts longer than its eight-entry receive FIFO without dropping bytes.
+  sample.nsing.n32h7.bringup.cm4.rx_burst:
+    harness: pytest
+    platform_allow:
+      - n32h787xib7_stb/n32h787/cm4
+    extra_args: EXTRA_CONF_FILE=cm4_standalone.conf
+    tags:
+      - uart
+    timeout: 120
+
+  sample.nsing.n32h7.bringup.cm7.dcmu:
+    build_only: true
+    platform_allow:
+      - n32h787xib7_stb/n32h787/cm7
+    extra_args: EXTRA_CONF_FILE="uart.conf;cm7_dcmu.conf"
+    tags:
+      - mbox
+    timeout: 60
+
+  sample.nsing.n32h7.bringup.cm4.dcmu:
+    build_only: true
+    platform_allow:
+      - n32h787xib7_stb/n32h787/cm4
+    extra_args: EXTRA_CONF_FILE=cm4_dcmu.conf
+    tags:
+      - mbox
+    timeout: 60
+
+  sample.nsing.n32h7.bringup.cm7.iwdg_reset:
+    build_only: true
+    platform_allow:
+      - n32h787xib7_stb/n32h787/cm7
+    extra_args: EXTRA_CONF_FILE="uart.conf;iwdg_reset_test.conf"
+    tags:
+      - watchdog
+    depends_on:
+      - watchdog
+    timeout: 60
+
+  sample.nsing.n32h7.bringup.cm4.iwdg_reset:
+    build_only: true
+    platform_allow:
+      - n32h787xib7_stb/n32h787/cm4
+    extra_args: EXTRA_CONF_FILE=cm4_iwdg_reset_dual.conf
+    tags:
+      - watchdog
+    depends_on:
+      - watchdog
+    timeout: 60

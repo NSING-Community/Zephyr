@@ -1,0 +1,27 @@
+# Copyright (c) 2026 Nations Technologies
+# SPDX-License-Identifier: Apache-2.0
+
+mainmenu "N32H78X bring-up sample"
+
+source "Kconfig.zephyr"
+
+config N32H78X_DCMU_TEST
+	bool "Run the isolated DCMU message test"
+	select N32H78X_DCMU_INIT
+	default n
+
+config N32H78X_CM4_SUPERVISOR
+	bool "Monitor CM4 shared-memory heartbeat"
+	depends on SOC_N32H787 && !SOC_N32H787_CM4
+	default n
+
+config N32H78X_CM4_HEARTBEAT_TIMEOUT_CYCLES
+	int "CM4 heartbeat timeout cycles"
+	depends on N32H78X_CM4_SUPERVISOR
+	default 3
+	range 1 255
+
+config N32H7_IWDG_RESET_TEST
+	bool "Stop feeding IWDG after six cycles"
+	depends on WDT_N32H7_IWDG
+	default n
