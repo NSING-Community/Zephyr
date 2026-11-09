@@ -1,0 +1,25 @@
+# Copyright (c) 2026 Nations Technologies
+# SPDX-License-Identifier: Apache-2.0
+
+config UART_N32H7
+	bool "Nations N32H7 USART driver"
+	default y
+	depends on SERIAL
+	depends on CLOCK_CONTROL
+	depends on PINCTRL
+	depends on DT_HAS_NSING_N32H7_UART_ENABLED
+	select USE_NSING_USART
+	select SERIAL_HAS_DRIVER
+	help
+	  Enable the N32H78x USART driver. The driver consumes the
+	  clock phandle from each UART node, so USART instances are selected by
+	  devicetree rather than by a SoC-specific base-address test.
+
+config UART_N32H7_INTERRUPT
+	bool "N32H7 interrupt-driven USART API"
+	depends on UART_N32H7
+	select SERIAL_SUPPORT_INTERRUPT
+	select UART_INTERRUPT_DRIVEN
+	default y
+	help
+	  Enable the optional interrupt-driven FIFO and callback API.
