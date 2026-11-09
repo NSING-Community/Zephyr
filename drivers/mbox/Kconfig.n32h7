@@ -1,0 +1,11 @@
+# Copyright (c) 2026 Nations Technologies
+# SPDX-License-Identifier: Apache-2.0
+
+config MBOX_N32H7_DCMU
+	bool "N32H7 DCMU mailbox"
+	default y
+	depends on SOC_SERIES_N32H78X
+	depends on DT_HAS_NSING_N32H7_DCMU_ENABLED
+	select N32H78X_DCMU_INIT
+	help
+	  Expose the N32H78x dual-core messaging unit through Zephyr's MBOX API.
