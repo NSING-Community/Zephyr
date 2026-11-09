@@ -208,8 +208,8 @@ manifest:
       groups:
         - hal
     - name: hal_nsing
-      url: https://github.com/derskop/hal_nsing
-      revision: 60bf74c23ceb0af0ac63d86d5364861525a67004
+      url: https://github.com/NSING-Community/hal_nsing
+      revision: a449da3c0750658fd3f7017b356d28d328992736
       path: modules/hal/nsing
       groups:
         - hal

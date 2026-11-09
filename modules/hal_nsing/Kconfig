@@ -76,9 +76,12 @@ config USE_NSING_FLASH
 
 config USE_NSING_GPIO
 	bool
-	default y
 	help
-	  Enable N32 General-purpose I/O (GPIO) HAL module driver
+	  Enable the vendor N32 General-purpose I/O (GPIO) HAL module.
+
+	  Zephyr's N32 GPIO and pinctrl drivers access the register blocks
+	  directly and therefore do not select this module. Keep it disabled
+	  unless another HAL module or driver calls the vendor GPIO API.
 
 config USE_NSING_I2C
 	bool
@@ -109,7 +112,10 @@ config USE_NSING_RCC
 	bool
 	default y
 	help
-	  Enable N32 Reset and Clock Control (RCC) HAL module driver
+	  Enable the N32 Reset and Clock Control (RCC) HAL module driver.
+
+	  This is part of the N32 platform bootstrap: the N32G45X SystemInit()
+	  implementation and multiple peripheral HAL modules call its API.
 
 config USE_NSING_RTC
 	bool
