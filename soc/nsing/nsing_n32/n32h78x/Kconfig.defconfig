@@ -1,0 +1,22 @@
+# Copyright (c) 2026 Nations Technologies
+# SPDX-License-Identifier: Apache-2.0
+
+if SOC_SERIES_N32H78X
+
+if SOC_N32H787_CM4
+config CODE_DATA_RELOCATION_SRAM
+	default y
+endif
+
+# MMU_INT_IRQn, the highest line in the CMSIS IRQn enumeration, is 233.
+config NUM_IRQS
+	default 234
+
+config SYS_CLOCK_HW_CYCLES_PER_SEC
+	default 64000000
+
+config N32_HSE_FREQ
+	default 8000000
+
+endif
+

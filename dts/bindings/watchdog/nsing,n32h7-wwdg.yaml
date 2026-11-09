@@ -1,0 +1,16 @@
+# Copyright (c) 2026 Nations Technologies
+# SPDX-License-Identifier: Apache-2.0
+
+description: Nations Technologies N32H78x window watchdog
+
+compatible: "nsing,n32h7-wwdg"
+
+include: [base.yaml]
+
+properties:
+  reg:
+    required: true
+  clocks:
+    required: true
+  interrupts:
+    required: true

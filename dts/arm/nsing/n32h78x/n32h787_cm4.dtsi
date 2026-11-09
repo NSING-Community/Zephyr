@@ -1,0 +1,374 @@
+/*
+ * Copyright (c) 2026 Nations Technologies
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#include <mem.h>
+#include <freq.h>
+#include <arm/armv7-m.dtsi>
+#include <zephyr/dt-bindings/memory-attr/memory-attr-arm.h>
+#include <zephyr/dt-bindings/clock/n32h7_clock.h>
+#include <zephyr/dt-bindings/pinctrl/n32h7-pinctrl.h>
+
+/ {
+	cpus {
+		#address-cells = <1>;
+		#size-cells = <0>;
+		cpu0: cpu@0 {
+			device_type = "cpu";
+			compatible = "arm,cortex-m4";
+			reg = <0>;
+			clock-frequency = <DT_FREQ_M(64)>;
+		};
+	};
+
+	soc {
+		compatible = "simple-bus";
+		#address-cells = <1>;
+		#size-cells = <1>;
+		ranges;
+
+		rcc: clock-controller@58030000 {
+			compatible = "nsing,n32h7-rcc";
+			reg = <0x58030000 0x1000>;
+			clock-frequency = <64000000>;
+			#clock-cells = <1>;
+			status = "okay";
+		};
+
+		dcmu: mailbox@400f8000 {
+			compatible = "nsing,n32h7-dcmu";
+			reg = <0x400f8000 0x30>;
+			interrupts = <177 0>;
+			#mbox-cells = <1>;
+			status = "okay";
+		};
+
+		iwdg2: watchdog@58005000 {
+			compatible = "nsing,n32h7-iwdg";
+			reg = <0x58005000 0x10>;
+			clocks = <&rcc N32H7_CLOCK_IWDG2>;
+			status = "okay";
+		};
+
+		wwdg2: watchdog@40010000 {
+			compatible = "nsing,n32h7-wwdg";
+			reg = <0x40010000 0x0c>;
+			clocks = <&rcc N32H7_M4_CLOCK_WWDG2>;
+			/* CMSIS: WWDG2_IRQn = 0 for the CM4 window watchdog. */
+			interrupts = <0 0>;
+			status = "okay";
+		};
+
+		gpioa: gpio@58032800 {
+			compatible = "nsing,n32h7-gpio";
+			gpio-controller;
+			#gpio-cells = <2>;
+			ngpios = <16>;
+			reg = <0x58032800 0x400>;
+			clocks = <&rcc N32H7_M4_CLOCK_GPIOA>;
+			status = "okay";
+		};
+		gpio_b: gpio@58032c00 {
+			compatible = "nsing,n32h7-gpio";
+			gpio-controller;
+			#gpio-cells = <2>;
+			ngpios = <16>;
+			reg = <0x58032c00 0x400>;
+			clocks = <&rcc N32H7_M4_CLOCK_GPIOB>;
+			status = "disabled";
+		};
+		gpio_c: gpio@58033000 {
+			compatible = "nsing,n32h7-gpio";
+			gpio-controller;
+			#gpio-cells = <2>;
+			ngpios = <16>;
+			reg = <0x58033000 0x400>;
+			clocks = <&rcc N32H7_M4_CLOCK_GPIOC>;
+			status = "disabled";
+		};
+		gpio_d: gpio@58033400 {
+			compatible = "nsing,n32h7-gpio";
+			gpio-controller;
+			#gpio-cells = <2>;
+			ngpios = <16>;
+			reg = <0x58033400 0x400>;
+			clocks = <&rcc N32H7_M4_CLOCK_GPIOD>;
+			status = "disabled";
+		};
+		gpio_e: gpio@58033800 {
+			compatible = "nsing,n32h7-gpio";
+			gpio-controller;
+			#gpio-cells = <2>;
+			ngpios = <16>;
+			reg = <0x58033800 0x400>;
+			clocks = <&rcc N32H7_M4_CLOCK_GPIOE>;
+			status = "disabled";
+		};
+		gpio_f: gpio@58033c00 {
+			compatible = "nsing,n32h7-gpio";
+			gpio-controller;
+			#gpio-cells = <2>;
+			ngpios = <16>;
+			reg = <0x58033c00 0x400>;
+			clocks = <&rcc N32H7_M4_CLOCK_GPIOF>;
+			status = "disabled";
+		};
+		gpio_g: gpio@58034000 {
+			compatible = "nsing,n32h7-gpio";
+			gpio-controller;
+			#gpio-cells = <2>;
+			ngpios = <16>;
+			reg = <0x58034000 0x400>;
+			clocks = <&rcc N32H7_M4_CLOCK_GPIOG>;
+			status = "disabled";
+		};
+		gpio_h: gpio@58034400 {
+			compatible = "nsing,n32h7-gpio";
+			gpio-controller;
+			#gpio-cells = <2>;
+			ngpios = <16>;
+			reg = <0x58034400 0x400>;
+			clocks = <&rcc N32H7_M4_CLOCK_GPIOH>;
+			status = "disabled";
+		};
+		gpio_i: gpio@58034800 {
+			compatible = "nsing,n32h7-gpio";
+			gpio-controller;
+			#gpio-cells = <2>;
+			ngpios = <16>;
+			reg = <0x58034800 0x400>;
+			clocks = <&rcc N32H7_M4_CLOCK_GPIOI>;
+			status = "disabled";
+		};
+		gpio_j: gpio@58034c00 {
+			compatible = "nsing,n32h7-gpio";
+			gpio-controller;
+			#gpio-cells = <2>;
+			ngpios = <16>;
+			reg = <0x58034c00 0x400>;
+			clocks = <&rcc N32H7_M4_CLOCK_GPIOJ>;
+			status = "disabled";
+		};
+		gpio_k: gpio@58035000 {
+			compatible = "nsing,n32h7-gpio";
+			gpio-controller;
+			#gpio-cells = <2>;
+			ngpios = <8>;
+			reg = <0x58035000 0x400>;
+			clocks = <&rcc N32H7_M4_CLOCK_GPIOK>;
+			status = "disabled";
+		};
+
+		usart1: serial@4000c400 {
+			compatible = "nsing,n32h7-uart";
+			reg = <0x4000c400 0x400>;
+			interrupts = <116 0>;
+			clocks = <&rcc N32H7_M4_CLOCK_USART1>;
+			current-speed = <115200>;
+			status = "disabled";
+			pinctrl-0 = <&usart1_tx &usart1_rx>;
+			pinctrl-names = "default";
+		};
+
+		usart3: serial@4000cc00 {
+			compatible = "nsing,n32h7-uart";
+			reg = <0x4000cc00 0x400>;
+			interrupts = <118 0>;
+			clocks = <&rcc N32H7_M4_CLOCK_USART3>;
+			current-speed = <115200>;
+			status = "disabled";
+			pinctrl-0 = <&usart3_tx &usart3_rx>;
+			pinctrl-names = "default";
+		};
+		usart2: serial@4000c800 {
+			compatible = "nsing,n32h7-uart";
+			reg = <0x4000c800 0x400>;
+			interrupts = <117 0>;
+			clocks = <&rcc N32H7_M4_CLOCK_USART2>;
+			current-speed = <115200>;
+			status = "disabled";
+			pinctrl-0 = <&usart2_tx &usart2_rx>;
+			pinctrl-names = "default";
+		};
+		usart4: serial@4000d000 {
+			compatible = "nsing,n32h7-uart";
+			reg = <0x4000d000 0x400>;
+			interrupts = <119 0>;
+			clocks = <&rcc N32H7_M4_CLOCK_USART4>;
+			current-speed = <115200>;
+			status = "disabled";
+		};
+		uart9: serial@4000d400 {
+			compatible = "nsing,n32h7-uart";
+			reg = <0x4000d400 0x400>;
+			interrupts = <124 0>;
+			clocks = <&rcc N32H7_M4_CLOCK_UART9>;
+			current-speed = <115200>;
+			status = "disabled";
+		};
+		uart10: serial@4000d800 {
+			compatible = "nsing,n32h7-uart";
+			reg = <0x4000d800 0x400>;
+			interrupts = <125 0>;
+			clocks = <&rcc N32H7_M4_CLOCK_UART10>;
+			current-speed = <115200>;
+			status = "disabled";
+		};
+		uart11: serial@4000dc00 {
+			compatible = "nsing,n32h7-uart";
+			reg = <0x4000dc00 0x400>;
+			interrupts = <126 0>;
+			clocks = <&rcc N32H7_M4_CLOCK_UART11>;
+			current-speed = <115200>;
+			status = "disabled";
+		};
+		uart12: serial@4000e000 {
+			compatible = "nsing,n32h7-uart";
+			reg = <0x4000e000 0x400>;
+			interrupts = <127 0>;
+			clocks = <&rcc N32H7_M4_CLOCK_UART12>;
+			current-speed = <115200>;
+			status = "disabled";
+		};
+		usart5: serial@400de000 {
+			compatible = "nsing,n32h7-uart";
+			reg = <0x400de000 0x400>;
+			interrupts = <120 0>;
+			clocks = <&rcc N32H7_M4_CLOCK_USART5>;
+			current-speed = <115200>;
+			status = "disabled";
+		};
+		usart6: serial@400de400 {
+			compatible = "nsing,n32h7-uart";
+			reg = <0x400de400 0x400>;
+			interrupts = <121 0>;
+			clocks = <&rcc N32H7_M4_CLOCK_USART6>;
+			current-speed = <115200>;
+			status = "disabled";
+		};
+		usart7: serial@400de800 {
+			compatible = "nsing,n32h7-uart";
+			reg = <0x400de800 0x400>;
+			interrupts = <122 0>;
+			clocks = <&rcc N32H7_M4_CLOCK_USART7>;
+			current-speed = <115200>;
+			status = "disabled";
+		};
+		usart8: serial@400dec00 {
+			compatible = "nsing,n32h7-uart";
+			reg = <0x400dec00 0x400>;
+			interrupts = <123 0>;
+			clocks = <&rcc N32H7_M4_CLOCK_USART8>;
+			current-speed = <115200>;
+			status = "disabled";
+		};
+		uart13: serial@400df000 {
+			compatible = "nsing,n32h7-uart";
+			reg = <0x400df000 0x400>;
+			interrupts = <128 0>;
+			clocks = <&rcc N32H7_M4_CLOCK_UART13>;
+			current-speed = <115200>;
+			status = "disabled";
+		};
+		uart14: serial@400df400 {
+			compatible = "nsing,n32h7-uart";
+			reg = <0x400df400 0x400>;
+			interrupts = <129 0>;
+			clocks = <&rcc N32H7_M4_CLOCK_UART14>;
+			current-speed = <115200>;
+			status = "disabled";
+		};
+		uart15: serial@400df800 {
+			compatible = "nsing,n32h7-uart";
+			reg = <0x400df800 0x400>;
+			interrupts = <130 0>;
+			clocks = <&rcc N32H7_M4_CLOCK_UART15>;
+			current-speed = <115200>;
+			status = "disabled";
+		};
+
+		sram0: memory@3001a000 {
+			compatible = "mmio-sram";
+			/* Keep the default RW/stack region above the relocated text. */
+			reg = <0x3001a000 0x5000>;
+		};
+
+		/* CM4 application text executes from AHB SRAM. The image is still
+		 * loaded from the independent xSPI flash window, but IRQ entry and
+		 * kernel code must not depend on that window remaining mapped.
+		 * reset-rom-start.ld exposes the first 64 KiB of AHB SRAM1 as an
+		 * RX MPU window over the relocated text, so only code may be
+		 * placed here; .data and .bss stay in sram0.
+		 */
+		sram_code: memory@30000400 {
+			compatible = "zephyr,memory-region", "mmio-sram";
+			reg = <0x30000400 0x1ec00>;
+			zephyr,memory-region = "SRAMCODE";
+			zephyr,memory-region-flags = "rx";
+		};
+
+		/*
+		 * AHB SRAM2 is a separate 128-KiB bank.  The N32H7 CM4 startup
+		 * configuration uses its first 1 KiB for the relocated vector table
+		 * (VTOR = 0x30020000); application data/stack remain in AHB SRAM1.
+		 */
+		cm4_vector_ram: memory@30020000 {
+			compatible = "zephyr,memory-region", "mmio-sram";
+			reg = <0x30020000 DT_SIZE_K(128)>;
+			zephyr,memory-region = "N32H7_CM4_VECTOR";
+			zephyr,memory-region-flags = "rw";
+		};
+
+		shared_mem: memory@3001f000 {
+			compatible = "zephyr,memory-region", "mmio-sram";
+			reg = <0x3001f000 DT_SIZE_K(4)>;
+			zephyr,memory-region = "N32H7_SHARED";
+			zephyr,memory-region-flags = "rw";
+			zephyr,memory-attr = <DT_MEM_ARM_MPU_RAM_NOCACHE>;
+		};
+
+		flash0: flash@15080000 {
+			compatible = "soc-nv-flash";
+			reg = <0x15080000 DT_SIZE_K(512)>;
+			write-block-size = <16>;
+			erase-block-size = <0x2000>;
+		};
+	};
+
+	clk_lsi: lsi-clock {
+	compatible = "fixed-clock";
+	clock-frequency = <32000>;
+	#clock-cells = <0>;
+	status = "okay";
+	};
+
+	usart1_tx: usart1-tx {
+	compatible = "nsing,n32h7-pinctrl";
+	pinmux = <N32H7_PINMUX('A', 9, 7, N32H7_PIN_AF, N32H7_PULL_UP)>;
+	};
+	usart1_rx: usart1-rx {
+	compatible = "nsing,n32h7-pinctrl";
+	pinmux = <N32H7_PINMUX('A', 10, 5, N32H7_PIN_INPUT, N32H7_PULL_UP)>;
+	};
+	usart3_tx: usart3-tx {
+	compatible = "nsing,n32h7-pinctrl";
+	pinmux = <N32H7_PINMUX('D', 8, 6, N32H7_PIN_AF, N32H7_PULL_UP)>;
+	};
+	usart3_rx: usart3-rx {
+	compatible = "nsing,n32h7-pinctrl";
+	pinmux = <N32H7_PINMUX('D', 9, 5, N32H7_PIN_INPUT, N32H7_PULL_UP)>;
+	};
+	usart2_tx: usart2-tx {
+	compatible = "nsing,n32h7-pinctrl";
+	pinmux = <N32H7_PINMUX('D', 5, 6, N32H7_PIN_AF, N32H7_PULL_UP)>;
+	};
+	usart2_rx: usart2-rx {
+	compatible = "nsing,n32h7-pinctrl";
+	pinmux = <N32H7_PINMUX('D', 6, 7, N32H7_PIN_INPUT, N32H7_PULL_UP)>;
+	};
+};
+
+&nvic {
+	arm,num-irq-priority-bits = <4>;
+};

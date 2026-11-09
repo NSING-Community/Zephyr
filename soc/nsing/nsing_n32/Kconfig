@@ -14,6 +14,12 @@ if SOC_FAMILY_NSING_N32
 # 递归加载所有系列的 Kconfig（能力表）：n32g45x/Kconfig、n32h78x/Kconfig…
 rsource "*/Kconfig"
 
+config N32_HSE_FREQ
+	int
+	help
+	  External oscillator frequency used by the N32 standard peripheral
+	  library. A SoC series or board must provide the default value.
+
 # 家族级公共选项放这里（所有 N32 系列共用的配置）。
 # 采用 Zephyr 标准模式：隐藏的 HAS_XXX（能力标志）→ 可见的 XXX（用户选项）。
 #

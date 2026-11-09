@@ -1,0 +1,24 @@
+# Copyright (c) 2026 Nations Technologies
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  N32H7 pin control group
+
+  A state holds one pinmux cell per pin. Build the cell with N32H7_PINMUX()
+  from <zephyr/dt-bindings/pinctrl/n32h7-pinctrl.h>; for example
+
+      pinmux = <N32H7_PINMUX('A', 9, 7, N32H7_PIN_AF, N32H7_PULL_UP)>;
+
+  configures PA9 as alternate function 7 with a pull-up.  Use
+  N32H7_PINMUX_OD() instead for an open-drain output, as required by I2C:
+
+      pinmux = <N32H7_PINMUX_OD('B', 7, 4, N32H7_PIN_AF, N32H7_PULL_UP)>;
+
+compatible: "nsing,n32h7-pinctrl"
+
+include: base.yaml
+
+properties:
+  pinmux:
+    type: array
+    required: true

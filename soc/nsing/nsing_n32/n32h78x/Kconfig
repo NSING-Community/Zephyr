@@ -1,0 +1,83 @@
+# Copyright (c) 2026 Nations Technologies
+# SPDX-License-Identifier: Apache-2.0
+
+config SOC_SERIES_N32H78X
+	bool
+	select HAS_NSING_HAL
+	select BUILD_OUTPUT_HEX
+	select PINCTRL
+	select ARM
+	select CPU_CORTEX_M7 if SOC_N32H787 && !SOC_N32H787_CM4
+	select CPU_CORTEX_M4 if SOC_N32H787_CM4
+	select CPU_CORTEX_M_HAS_DWT
+	select CPU_HAS_ARM_MPU
+	# Both cores have an FPU; the Cortex-M7 one is double precision and the
+	# Cortex-M4 one is single precision.
+	select CPU_HAS_FPU
+	select CPU_HAS_FPU_DOUBLE_PRECISION if SOC_N32H787 && !SOC_N32H787_CM4
+	select CPU_HAS_ICACHE if SOC_N32H787 && !SOC_N32H787_CM4
+	select CPU_HAS_DCACHE if SOC_N32H787 && !SOC_N32H787_CM4
+	select SOC_EARLY_INIT_HOOK
+	select SOC_RESET_HOOK
+	help
+	  Nations N32H78x dual-core SoC support. CM7 and CM4 are built as separate
+	  images; this is not a symmetric-MP target.
+
+config N32H78X_START_M4
+	bool "Start Cortex-M4 from the Cortex-M7 image"
+	depends on SOC_SERIES_N32H78X
+	default n
+	help
+	  Experimental. Release CM4 from reset during POST_KERNEL using the
+	  independent image linked at 0x15080000. Keep disabled until that image,
+	  its vector table and shared-memory/cache protocol have been validated.
+
+config N32H78X_CM4_WAIT_FOR_CM7
+	bool "Hold CM4 until CM7 publishes ready"
+	depends on SOC_N32H787_CM4
+	default y
+	help
+	  Make the CM4 early-init hook wait for the CM7 image to finish system
+	  and shared-memory initialization. Disable only for standalone CM4
+	  bring-up where CM7 is not present.
+
+config N32H78X_CM4_BOOT_TIMEOUT_LOOPS
+	int "CM4 wait loops for CM7 ready"
+	depends on SOC_N32H787_CM4 && N32H78X_CM4_WAIT_FOR_CM7
+	default 100000000
+	range 1 4294967295
+	help
+	  Maximum number of early-init polling iterations while CM4 waits for
+	  CM7 to publish its ready state. On timeout CM4 records an error state
+	  in shared SRAM and remains parked instead of touching shared peripherals.
+
+config N32H78X_DCMU_INIT
+	bool "Initialize DCMU mailbox during SoC early init"
+	depends on SOC_SERIES_N32H78X
+	default n
+	help
+	  Enable the dual-core mailbox clock and reset pulse during early SoC
+	  initialization. Keep disabled until DCMU access and MPU setup are
+	  validated on the target.
+
+config N32H78X_DISABLE_WFI
+	bool "Disable WFI in the N32H78x idle loop"
+	depends on SOC_SERIES_N32H78X
+	select ARM_ON_ENTER_CPU_IDLE_HOOK
+	default y
+	help
+	  N32H7 gates the CM7 clock in Sleep in a way that currently prevents
+	  reliable SWD/DAP access after WFI. Keep this enabled for stable bring-up
+	  and debugging. Disable it only when the N32H7 low-power/debug path has
+	  been validated on the target hardware.
+
+config N32H78X_DEBUG_LOW_POWER
+	bool "Keep N32H7 debug clocks running in low-power test"
+	depends on SOC_SERIES_N32H78X
+	default n
+	help
+	  Set the N32H7 DBG sleep/stop/standby bits for both CPUs so SWD can
+	  continue to inspect a low-power test image. This increases current and
+	  must remain disabled in production power measurements.
+
+

@@ -6,5 +6,6 @@
 # 全家族公共代码（nsing/common/）
 add_subdirectory(common)
 
-# 根据 Kconfig 字符串 SOC_SERIES（如 "n32g45x"）进入对应系列目录
-add_subdirectory(${SOC_SERIES})
+# Build only the selected N32 series.
+add_subdirectory_ifdef(CONFIG_SOC_SERIES_N32G45X n32g45x)
+add_subdirectory_ifdef(CONFIG_SOC_SERIES_N32H78X n32h78x)

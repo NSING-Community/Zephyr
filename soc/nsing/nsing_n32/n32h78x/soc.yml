@@ -1,0 +1,12 @@
+# Copyright (c) 2026 Nations Technologies
+# SPDX-License-Identifier: Apache-2.0
+
+family:
+- name: nsing
+  series:
+  - name: n32h78x
+    socs:
+    - name: n32h787
+      cpuclusters:
+      - name: cm7
+      - name: cm4

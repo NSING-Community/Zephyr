@@ -1,0 +1,597 @@
+/*
+ * Copyright (c) 2026 Nations Technologies
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#include <mem.h>
+#include <freq.h>
+#include <arm/armv7-m.dtsi>
+#include <zephyr/dt-bindings/memory-attr/memory-attr-arm.h>
+#include <zephyr/dt-bindings/clock/n32h7_clock.h>
+#include <zephyr/dt-bindings/pinctrl/n32h7-pinctrl.h>
+
+/ {
+	cpus {
+		#address-cells = <1>;
+		#size-cells = <0>;
+		cpu0: cpu@0 {
+			device_type = "cpu";
+			compatible = "arm,cortex-m7";
+			reg = <0>;
+			clock-frequency = <DT_FREQ_M(64)>;
+			#address-cells = <1>;
+			#size-cells = <1>;
+			mpu: mpu@e000ed90 {
+				compatible = "arm,armv7m-mpu";
+				reg = <0xe000ed90 0x40>;
+			};
+		};
+	};
+
+	soc {
+		compatible = "simple-bus";
+		#address-cells = <1>;
+		#size-cells = <1>;
+		ranges;
+
+		rcc: clock-controller@58030000 {
+			compatible = "nsing,n32h7-rcc";
+			reg = <0x58030000 0x1000>;
+			clock-frequency = <64000000>;
+			#clock-cells = <1>;
+			status = "okay";
+		};
+
+		dcmu: mailbox@400f7000 {
+			compatible = "nsing,n32h7-dcmu";
+			reg = <0x400f7000 0x30>;
+			interrupts = <177 0>;
+			#mbox-cells = <1>;
+			status = "okay";
+		};
+
+		iwdg1: watchdog@58004c00 {
+			compatible = "nsing,n32h7-iwdg";
+			reg = <0x58004c00 0x10>;
+			clocks = <&rcc N32H7_CLOCK_IWDG1>;
+			status = "okay";
+		};
+
+		wwdg1: watchdog@5004a800 {
+			compatible = "nsing,n32h7-wwdg";
+			reg = <0x5004a800 0x0c>;
+			clocks = <&rcc N32H7_M7_CLOCK_WWDG1>;
+			/* CMSIS: WWDG1_IRQn = 0 for the CM7 window watchdog. */
+			interrupts = <0 0>;
+			status = "okay";
+		};
+
+		sram0: memory@24000000 {
+			compatible = "mmio-sram";
+			reg = <0x24000000 DT_SIZE_K(128)>;
+		};
+
+		shared_mem: memory@3001f000 {
+			compatible = "zephyr,memory-region", "mmio-sram";
+			reg = <0x3001f000 DT_SIZE_K(4)>;
+			zephyr,memory-region = "N32H7_SHARED";
+			zephyr,memory-region-flags = "rw";
+			zephyr,memory-attr = <DT_MEM_ARM_MPU_RAM_NOCACHE>;
+		};
+
+		/* Bank 1 holds the Cortex-M7 image. Bank 2 at 0x15080000 is
+		 * reserved for the Cortex-M4 image, so this region must stay
+		 * limited to 512 KiB or the two images overlap.
+		 */
+		flash0: flash@15000000 {
+			compatible = "soc-nv-flash";
+			reg = <0x15000000 DT_SIZE_K(512)>;
+			write-block-size = <16>;
+			erase-block-size = <0x2000>;
+		};
+
+		/* Address/IRQ facts reserved for the first dedicated drivers. */
+		gpioa: gpio@58032800 {
+			compatible = "nsing,n32h7-gpio";
+			gpio-controller;
+			#gpio-cells = <2>;
+			ngpios = <16>;
+			reg = <0x58032800 0x400>;
+			clocks = <&rcc N32H7_M7_CLOCK_GPIOA>;
+			status = "okay";
+		};
+
+		/* GPIO ports are declared for SoC completeness. Only ports with a
+		 * board pin mapping should be enabled by a board DTS.
+		 */
+		gpio_b: gpio@58032c00 {
+			compatible = "nsing,n32h7-gpio";
+			gpio-controller;
+			#gpio-cells = <2>;
+			ngpios = <16>;
+			reg = <0x58032c00 0x400>;
+			clocks = <&rcc N32H7_M7_CLOCK_GPIOB>;
+			status = "disabled";
+		};
+		gpio_c: gpio@58033000 {
+			compatible = "nsing,n32h7-gpio";
+			gpio-controller;
+			#gpio-cells = <2>;
+			ngpios = <16>;
+			reg = <0x58033000 0x400>;
+			clocks = <&rcc N32H7_M7_CLOCK_GPIOC>;
+			status = "disabled";
+		};
+		gpio_d: gpio@58033400 {
+			compatible = "nsing,n32h7-gpio";
+			gpio-controller;
+			#gpio-cells = <2>;
+			ngpios = <16>;
+			reg = <0x58033400 0x400>;
+			clocks = <&rcc N32H7_M7_CLOCK_GPIOD>;
+			status = "disabled";
+		};
+		gpio_e: gpio@58033800 {
+			compatible = "nsing,n32h7-gpio";
+			gpio-controller;
+			#gpio-cells = <2>;
+			ngpios = <16>;
+			reg = <0x58033800 0x400>;
+			clocks = <&rcc N32H7_M7_CLOCK_GPIOE>;
+			status = "disabled";
+		};
+		gpio_f: gpio@58033c00 {
+			compatible = "nsing,n32h7-gpio";
+			gpio-controller;
+			#gpio-cells = <2>;
+			ngpios = <16>;
+			reg = <0x58033c00 0x400>;
+			clocks = <&rcc N32H7_M7_CLOCK_GPIOF>;
+			status = "disabled";
+		};
+		gpio_g: gpio@58034000 {
+			compatible = "nsing,n32h7-gpio";
+			gpio-controller;
+			#gpio-cells = <2>;
+			ngpios = <16>;
+			reg = <0x58034000 0x400>;
+			clocks = <&rcc N32H7_M7_CLOCK_GPIOG>;
+			status = "disabled";
+		};
+		gpio_h: gpio@58034400 {
+			compatible = "nsing,n32h7-gpio";
+			gpio-controller;
+			#gpio-cells = <2>;
+			ngpios = <16>;
+			reg = <0x58034400 0x400>;
+			clocks = <&rcc N32H7_M7_CLOCK_GPIOH>;
+			status = "disabled";
+		};
+		gpio_i: gpio@58034800 {
+			compatible = "nsing,n32h7-gpio";
+			gpio-controller;
+			#gpio-cells = <2>;
+			ngpios = <16>;
+			reg = <0x58034800 0x400>;
+			clocks = <&rcc N32H7_M7_CLOCK_GPIOI>;
+			status = "disabled";
+		};
+		gpio_j: gpio@58034c00 {
+			compatible = "nsing,n32h7-gpio";
+			gpio-controller;
+			#gpio-cells = <2>;
+			ngpios = <16>;
+			reg = <0x58034c00 0x400>;
+			clocks = <&rcc N32H7_M7_CLOCK_GPIOJ>;
+			status = "disabled";
+		};
+		gpio_k: gpio@58035000 {
+			compatible = "nsing,n32h7-gpio";
+			gpio-controller;
+			#gpio-cells = <2>;
+			ngpios = <8>;
+			reg = <0x58035000 0x400>;
+			clocks = <&rcc N32H7_M7_CLOCK_GPIOK>;
+			status = "disabled";
+		};
+
+		usart1: serial@4000c400 {
+			compatible = "nsing,n32h7-uart";
+			reg = <0x4000c400 0x400>;
+			interrupts = <116 0>;
+			clocks = <&rcc N32H7_M7_CLOCK_USART1>;
+			current-speed = <115200>;
+			status = "disabled";
+			pinctrl-0 = <&usart1_tx &usart1_rx>;
+			pinctrl-names = "default";
+		};
+		usart2: serial@4000c800 {
+			compatible = "nsing,n32h7-uart";
+			reg = <0x4000c800 0x400>;
+			interrupts = <117 0>;
+			clocks = <&rcc N32H7_M7_CLOCK_USART2>;
+			current-speed = <115200>;
+			status = "disabled";
+			pinctrl-0 = <&usart2_tx &usart2_rx>;
+			pinctrl-names = "default";
+		};
+		usart3: serial@4000cc00 {
+			compatible = "nsing,n32h7-uart";
+			reg = <0x4000cc00 0x400>;
+			interrupts = <118 0>;
+			clocks = <&rcc N32H7_M7_CLOCK_USART3>;
+			current-speed = <115200>;
+			status = "disabled";
+			pinctrl-0 = <&usart3_tx &usart3_rx>;
+			pinctrl-names = "default";
+		};
+		usart4: serial@4000d000 {
+			compatible = "nsing,n32h7-uart";
+			reg = <0x4000d000 0x400>;
+			interrupts = <119 0>;
+			clocks = <&rcc N32H7_M7_CLOCK_USART4>;
+			current-speed = <115200>;
+			status = "disabled";
+		};
+		uart9: serial@4000d400 {
+			compatible = "nsing,n32h7-uart";
+			reg = <0x4000d400 0x400>;
+			interrupts = <124 0>;
+			clocks = <&rcc N32H7_M7_CLOCK_UART9>;
+			current-speed = <115200>;
+			status = "disabled";
+		};
+		uart10: serial@4000d800 {
+			compatible = "nsing,n32h7-uart";
+			reg = <0x4000d800 0x400>;
+			interrupts = <125 0>;
+			clocks = <&rcc N32H7_M7_CLOCK_UART10>;
+			current-speed = <115200>;
+			status = "disabled";
+		};
+		uart11: serial@4000dc00 {
+			compatible = "nsing,n32h7-uart";
+			reg = <0x4000dc00 0x400>;
+			interrupts = <126 0>;
+			clocks = <&rcc N32H7_M7_CLOCK_UART11>;
+			current-speed = <115200>;
+			status = "disabled";
+		};
+		uart12: serial@4000e000 {
+			compatible = "nsing,n32h7-uart";
+			reg = <0x4000e000 0x400>;
+			interrupts = <127 0>;
+			clocks = <&rcc N32H7_M7_CLOCK_UART12>;
+			current-speed = <115200>;
+			status = "disabled";
+		};
+		usart5: serial@400de000 {
+			compatible = "nsing,n32h7-uart";
+			reg = <0x400de000 0x400>;
+			interrupts = <120 0>;
+			clocks = <&rcc N32H7_M7_CLOCK_USART5>;
+			current-speed = <115200>;
+			status = "disabled";
+		};
+		usart6: serial@400de400 {
+			compatible = "nsing,n32h7-uart";
+			reg = <0x400de400 0x400>;
+			interrupts = <121 0>;
+			clocks = <&rcc N32H7_M7_CLOCK_USART6>;
+			current-speed = <115200>;
+			status = "disabled";
+		};
+		usart7: serial@400de800 {
+			compatible = "nsing,n32h7-uart";
+			reg = <0x400de800 0x400>;
+			interrupts = <122 0>;
+			clocks = <&rcc N32H7_M7_CLOCK_USART7>;
+			current-speed = <115200>;
+			status = "disabled";
+		};
+		usart8: serial@400dec00 {
+			compatible = "nsing,n32h7-uart";
+			reg = <0x400dec00 0x400>;
+			interrupts = <123 0>;
+			clocks = <&rcc N32H7_M7_CLOCK_USART8>;
+			current-speed = <115200>;
+			status = "disabled";
+		};
+		uart13: serial@400df000 {
+			compatible = "nsing,n32h7-uart";
+			reg = <0x400df000 0x400>;
+			interrupts = <128 0>;
+			clocks = <&rcc N32H7_M7_CLOCK_UART13>;
+			current-speed = <115200>;
+			status = "disabled";
+		};
+		uart14: serial@400df400 {
+			compatible = "nsing,n32h7-uart";
+			reg = <0x400df400 0x400>;
+			interrupts = <129 0>;
+			clocks = <&rcc N32H7_M7_CLOCK_UART14>;
+			current-speed = <115200>;
+			status = "disabled";
+		};
+		uart15: serial@400df800 {
+			compatible = "nsing,n32h7-uart";
+			reg = <0x400df800 0x400>;
+			interrupts = <130 0>;
+			clocks = <&rcc N32H7_M7_CLOCK_UART15>;
+			current-speed = <115200>;
+			status = "disabled";
+		};
+
+		/* The following declarations mirror the N32H787 reference manual.
+		 * They are disabled by default; boards enable only peripherals that
+		 * have a pin assignment.  The clock cells use the gate macros from
+		 * <zephyr/dt-bindings/clock/n32h7_clock.h>.
+		 */
+		i2c1: i2c@4000e800 {
+			compatible = "nsing,n32h7-i2c";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x4000e800 0x400>;
+			interrupts = <58 0>, <59 0>;
+			interrupt-names = "event", "error";
+			clocks = <&rcc N32H7_M7_CLOCK_I2C1>;
+			status = "disabled";
+		};
+		i2c2: i2c@4000ec00 {
+			compatible = "nsing,n32h7-i2c";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x4000ec00 0x400>;
+			interrupts = <60 0>, <61 0>;
+			interrupt-names = "event", "error";
+			clocks = <&rcc N32H7_M7_CLOCK_I2C2>;
+			status = "disabled";
+		};
+		i2c3: i2c@4000f000 {
+			compatible = "nsing,n32h7-i2c";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x4000f000 0x400>;
+			interrupts = <62 0>, <63 0>;
+			interrupt-names = "event", "error";
+			clocks = <&rcc N32H7_M7_CLOCK_I2C3>;
+			status = "disabled";
+		};
+		i2c4: i2c@400dd400 {
+			compatible = "nsing,n32h7-i2c";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x400dd400 0x400>;
+			interrupts = <64 0>, <65 0>;
+			interrupt-names = "event", "error";
+			clocks = <&rcc N32H7_M7_CLOCK_I2C4>;
+			status = "disabled";
+		};
+		i2c5: i2c@400dd800 {
+			compatible = "nsing,n32h7-i2c";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x400dd800 0x400>;
+			interrupts = <66 0>, <67 0>;
+			interrupt-names = "event", "error";
+			clocks = <&rcc N32H7_M7_CLOCK_I2C5>;
+			status = "disabled";
+		};
+		i2c6: i2c@400ddc00 {
+			compatible = "nsing,n32h7-i2c";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x400ddc00 0x400>;
+			interrupts = <68 0>, <69 0>;
+			interrupt-names = "event", "error";
+			clocks = <&rcc N32H7_M7_CLOCK_I2C6>;
+			status = "disabled";
+		};
+		i2c7: i2c@58003000 {
+			compatible = "nsing,n32h7-i2c";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x58003000 0x400>;
+			interrupts = <70 0>, <71 0>;
+			interrupt-names = "event", "error";
+			clocks = <&rcc N32H7_M7_CLOCK_I2C7>;
+			status = "disabled";
+		};
+		i2c8: i2c@58003400 {
+			compatible = "nsing,n32h7-i2c";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x58003400 0x400>;
+			interrupts = <72 0>, <73 0>;
+			interrupt-names = "event", "error";
+			clocks = <&rcc N32H7_M7_CLOCK_I2C8>;
+			status = "disabled";
+		};
+		i2c9: i2c@58003800 {
+			compatible = "nsing,n32h7-i2c";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x58003800 0x400>;
+			interrupts = <74 0>, <75 0>;
+			interrupt-names = "event", "error";
+			clocks = <&rcc N32H7_M7_CLOCK_I2C9>;
+			status = "disabled";
+		};
+		i2c10: i2c@58003c00 {
+			compatible = "nsing,n32h7-i2c";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x58003c00 0x400>;
+			interrupts = <76 0>, <77 0>;
+			interrupt-names = "event", "error";
+			clocks = <&rcc N32H7_M7_CLOCK_I2C10>;
+			status = "disabled";
+		};
+
+		spi1: spi@400dc000 {
+			compatible = "nsing,n32h7-spi";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x400dc000 0x400>;
+			interrupts = <84 0>;
+			clocks = <&rcc N32H7_M7_CLOCK_SPI1>;
+			status = "disabled";
+		};
+		spi2: spi@400dc400 {
+			compatible = "nsing,n32h7-spi";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x400dc400 0x400>;
+			interrupts = <85 0>;
+			clocks = <&rcc N32H7_M7_CLOCK_SPI2>;
+			status = "disabled";
+		};
+		spi3: spi@4000e400 {
+			compatible = "nsing,n32h7-spi";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x4000e400 0x400>;
+			interrupts = <86 0>;
+			clocks = <&rcc N32H7_M7_CLOCK_SPI3>;
+			status = "disabled";
+		};
+		spi4: spi@58002000 {
+			compatible = "nsing,n32h7-spi";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x58002000 0x400>;
+			interrupts = <87 0>;
+			clocks = <&rcc N32H7_M7_CLOCK_SPI4>;
+			status = "disabled";
+		};
+		spi5: spi@58002400 {
+			compatible = "nsing,n32h7-spi";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x58002400 0x400>;
+			interrupts = <88 0>;
+			clocks = <&rcc N32H7_M7_CLOCK_SPI5>;
+			status = "disabled";
+		};
+		spi6: spi@58002800 {
+			compatible = "nsing,n32h7-spi";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x58002800 0x400>;
+			interrupts = <89 0>;
+			clocks = <&rcc N32H7_M7_CLOCK_SPI6>;
+			status = "disabled";
+		};
+		spi7: spi@58002c00 {
+			compatible = "nsing,n32h7-spi";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x58002c00 0x400>;
+			interrupts = <90 0>;
+			clocks = <&rcc N32H7_M7_CLOCK_SPI7>;
+			status = "disabled";
+		};
+
+		adc1: adc@40044000 {
+			compatible = "nsing,n32h7-adc";
+			reg = <0x40044000 0x400>;
+			interrupts = <137 0>;
+			clocks = <&rcc N32H7_M7_CLOCK_ADC1>;
+			#io-channel-cells = <1>;
+			channels = <16>;
+			status = "disabled";
+		};
+		adc2: adc@40044400 {
+			compatible = "nsing,n32h7-adc";
+			reg = <0x40044400 0x400>;
+			interrupts = <138 0>;
+			clocks = <&rcc N32H7_M7_CLOCK_ADC2>;
+			#io-channel-cells = <1>;
+			channels = <16>;
+			status = "disabled";
+		};
+		adc3: adc@40044800 {
+			compatible = "nsing,n32h7-adc";
+			reg = <0x40044800 0x400>;
+			interrupts = <139 0>;
+			clocks = <&rcc N32H7_M7_CLOCK_ADC3>;
+			#io-channel-cells = <1>;
+			channels = <16>;
+			status = "disabled";
+		};
+
+		dma1: dma@40046800 {
+			compatible = "nsing,n32h7-dma";
+			reg = <0x40046800 0x400>;
+			clocks = <&rcc N32H7_M7_CLOCK_DMA1>;
+			interrupts = <12 0>, <13 0>, <14 0>, <15 0>, <16 0>, <17 0>, <18 0>, <19 0>;
+			#dma-cells = <3>;
+			dma-channels = <8>;
+			nsing,mem2mem;
+			status = "disabled";
+		};
+		dma2: dma@40046c00 {
+			compatible = "nsing,n32h7-dma";
+			reg = <0x40046c00 0x400>;
+			clocks = <&rcc N32H7_M7_CLOCK_DMA2>;
+			interrupts = <20 0>, <21 0>, <22 0>, <23 0>, <24 0>, <25 0>, <26 0>, <27 0>;
+			#dma-cells = <3>;
+			dma-channels = <8>;
+			nsing,mem2mem;
+			status = "disabled";
+		};
+		dma3: dma@40047000 {
+			compatible = "nsing,n32h7-dma";
+			reg = <0x40047000 0x400>;
+			clocks = <&rcc N32H7_M7_CLOCK_DMA3>;
+			interrupts = <28 0>, <29 0>, <30 0>, <31 0>, <32 0>, <33 0>, <34 0>, <35 0>;
+			#dma-cells = <3>;
+			dma-channels = <8>;
+			nsing,mem2mem;
+			status = "disabled";
+		};
+	};
+
+	clk_lsi: lsi-clock {
+		compatible = "fixed-clock";
+		clock-frequency = <32000>;
+		#clock-cells = <0>;
+		status = "okay";
+	};
+
+	usart1_tx: usart1-tx {
+		compatible = "nsing,n32h7-pinctrl";
+		/* PA9, AF7, alternate-function output, pull-up. */
+		pinmux = <N32H7_PINMUX('A', 9, 7, N32H7_PIN_AF, N32H7_PULL_UP)>;
+	};
+
+	usart1_rx: usart1-rx {
+		compatible = "nsing,n32h7-pinctrl";
+		/* PA10, AF5, input, pull-up. */
+		pinmux = <N32H7_PINMUX('A', 10, 5, N32H7_PIN_INPUT, N32H7_PULL_UP)>;
+	};
+
+	usart3_tx: usart3-tx {
+		compatible = "nsing,n32h7-pinctrl";
+		pinmux = <N32H7_PINMUX('D', 8, 6, N32H7_PIN_AF, N32H7_PULL_UP)>;
+	};
+
+	usart3_rx: usart3-rx {
+		compatible = "nsing,n32h7-pinctrl";
+		pinmux = <N32H7_PINMUX('D', 9, 5, N32H7_PIN_INPUT, N32H7_PULL_UP)>;
+	};
+
+	usart2_tx: usart2-tx {
+		compatible = "nsing,n32h7-pinctrl";
+		pinmux = <N32H7_PINMUX('D', 5, 6, N32H7_PIN_AF, N32H7_PULL_UP)>;
+	};
+
+	usart2_rx: usart2-rx {
+		compatible = "nsing,n32h7-pinctrl";
+		pinmux = <N32H7_PINMUX('D', 6, 7, N32H7_PIN_INPUT, N32H7_PULL_UP)>;
+	};
+};
+
+&nvic {
+	arm,num-irq-priority-bits = <4>;
+};

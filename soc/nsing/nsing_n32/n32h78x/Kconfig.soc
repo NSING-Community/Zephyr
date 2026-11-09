@@ -1,0 +1,24 @@
+# Copyright (c) 2026 Nations Technologies
+# SPDX-License-Identifier: Apache-2.0
+
+config SOC_SERIES_N32H78X
+	bool
+	select SOC_FAMILY_NSING_N32H7
+
+config SOC_SERIES
+	default "n32h78x" if SOC_SERIES_N32H78X
+
+config SOC_N32H787
+	bool
+	select SOC_SERIES_N32H78X
+
+config SOC_N32H787_CM4
+	bool
+	select SOC_SERIES_N32H78X
+
+config SOC
+	default "n32h787" if SOC_N32H787 || SOC_N32H787_CM4
+
+config SOC_FAMILY_NSING_N32H7
+	bool
+
